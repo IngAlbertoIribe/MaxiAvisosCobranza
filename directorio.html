@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maxikash - Directorio de Gestores</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-[#E8EEF7] min-h-screen p-4 md:p-8">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    class ErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = { hasError: false, errorInfo: null };
+      }
+      static getDerivedStateFromError(error) {
+        return { hasError: true };
+      }
+      componentDidCatch(error, errorInfo) {
+        this.setState({ errorInfo: error.toString() });
+      }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="p-8 max-w-[900px] mx-auto">
+              <div className="bg-red-50 border-2 border-red-500 rounded-xl p-6">
+                <h1 className="text-red-700 font-bold text-xl mb-2">Error en el Directorio:</h1>
+                <p className="text-red-600 font-mono text-sm">{this.state.errorInfo}</p>
+                <button onClick={() => window.location.reload()} className="mt-4 bg-red-600 text-white px-4 py-2 rounded">Recargar página</button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children; 
+      }
+    }
+
+    function DirectorioGestores() {
+      const [gestores, setGestores] = useState([]);
+      const [busqueda, setBusqueda] = useState("");
+      const [cargando, setCargando] = useState(true);
+      const [error, setError] = useState(null);
+
+      useEffect(() => {
+        // Cargar el JSON al abrir la página
+        fetch('gestores.json?nocache=' + new Date().getTime())
+          .then(res => {
+            if (!res.ok) throw new Error("No se pudo cargar el archivo gestores.json. Verifica que esté subido en GitHub.");
+            return res.json();
+          })
+          .then(data => {
+            if (Array.isArray(data)) {
+              setGestores(data);
+            } else {
+              throw new Error("El archivo gestores.json no tiene el formato correcto.");
+            }
+            setCargando(false);
+          })
+          .catch(err => {
+            console.error(err);
+            setError(err.message);
+            setCargando(false);
+          });
+      }, []);
+
+      const gestoresFiltrados = gestores.filter(g => {
+        const n = g.nombre || "";
+        const t = g.telefono || "";
+        const b = busqueda || "";
+        return n.toLowerCase().includes(b.toLowerCase()) || t.includes(b);
+      });
+
+      const abrirWhatsApp = (telefono, nombre) => {
+        if (!telefono) return;
+        const texto = encodeURIComponent(`Hola ${nombre}, `);
+        window.open(`https://wa.me/52${telefono}?text=${texto}`, "_blank");
+      };
+
+      return (
+        <div className="max-w-[900px] mx-auto">
+          {/* Header */}
+          <header className="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col sm:flex-row items-center justify-between shadow-xl gap-4">
+            <div className="flex items-center gap-4 w-full">
+              <img src="logo.png" alt="Maxikash Logo" className="h-12 w-auto object-contain" onError={(e) => e.target.style.display='none'} />
+              <div>
+                <h1 className="text-xl font-black tracking-tight">MAXIKASH • DIRECTORIO DE GESTORES</h1>
+                <p className="text-slate-300 text-xs mt-0.5">Consulta la lista oficial de gestores dados de alta</p>
+              </div>
+            </div>
+            <div className="bg-[#C6D82E] text-[#0A1931] px-4 py-2 rounded-xl font-black text-sm shrink-0 shadow-sm">
+              👥 {gestores.length} Activos
+            </div>
+          </header>
+
+          {/* Buscador */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-lg">
+                🔍
+              </span>
+              <input 
+                type="text" 
+                placeholder="Buscar por nombre o celular..." 
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full bg-slate-50 border-2 border-slate-200 pl-12 p-3.5 rounded-xl font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] focus:border-[#C6D82E] outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Lista View Only */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            {cargando ? (
+              <div className="text-center py-12 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 border-4 border-slate-200 border-t-[#4348EB] rounded-full animate-spin mb-4"></div>
+                <p className="text-slate-500 font-bold">Cargando directorio...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10 bg-red-50 border-2 border-dashed border-red-200 rounded-xl">
+                <p className="text-red-500 font-bold mb-2">⚠️ Hubo un problema</p>
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            ) : gestoresFiltrados.length === 0 ? (
+              <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl">
+                <p className="text-slate-400 font-bold text-lg mb-1">Ningún gestor encontrado</p>
+                <p className="text-sm text-slate-400">Intenta con otra búsqueda o verifica que haya gestores registrados.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {gestoresFiltrados.map((gestor, idx) => (
+                  <div key={gestor.id || idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-[#C6D82E] hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-[#4348EB] text-white font-black flex items-center justify-center shrink-0">
+                        {gestor.nombre ? gestor.nombre.charAt(0).toUpperCase() : "?"}
+                      </div>
+                      <div>
+                        <p className="font-black text-[#0A1931] text-sm uppercase tracking-wide">{gestor.nombre}</p>
+                        <p className="text-slate-500 font-bold text-xs mt-0.5 flex items-center gap-1">
+                          📱 {gestor.telefono || "Sin teléfono"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => abrirWhatsApp(gestor.telefono, gestor.nombre)}
+                      disabled={!gestor.telefono}
+                      className="w-full sm:w-auto bg-[#22C55E] hover:bg-green-600 disabled:bg-slate-300 disabled:text-slate-500 text-white px-4 py-2 rounded-lg font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                      title="Abrir chat en WhatsApp"
+                    >
+                      <span>💬</span> WhatsApp
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(
+      <ErrorBoundary>
+        <DirectorioGestores />
+      </ErrorBoundary>
+    );
+  </script>
+</body>
+</html>
