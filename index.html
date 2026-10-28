@@ -15,6 +15,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- html2canvas para renderizar la imagen en alta definición -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- JSZip para generar el archivo ZIP con todas las imágenes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap');
@@ -59,6 +61,8 @@
       const [telGestor, setTelGestor] = useState("");
 
       const [generando, setGenerando] = useState(false);
+      const [progresoZip, setProgresoZip] = useState({ actual: 0, total: 0 }); // Para la barra de progreso
+      
       const [escala, setEscala] = useState(1);
       const [criterioOrden, setCriterioOrden] = useState("monto_desc");
       const [alturaFicha, setAlturaFicha] = useState(1200);
@@ -196,7 +200,6 @@
         procesarRegistros(filasExcel, colNombre, colMonto, colCelular, colClabe, nuevoOrden);
       };
 
-      // Manejador del select de gestores con la lógica del JSON
       const handleGestorChange = (e) => {
         const idGestor = e.target.value;
         setGestorSeleccionado(idGestor);
@@ -212,8 +215,13 @@
           }
         }
       };
+      
+      const formatearNombreArchivo = (nombre, montoStr) => {
+        const nombreLimpio = (nombre || "CLIENTE").replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_");
+        return `MAXIKASH_${nombreLimpio}_$${montoStr || "0"}.jpg`;
+      };
 
-      const generarImagen = async () => {
+      const generarImagenUnica = async () => {
         if (!fichaRef.current) return;
         setGenerando(true);
         
@@ -243,13 +251,91 @@
 
           const imgData = canvas.toDataURL("image/jpeg", 0.95);
           const link = document.createElement("a");
-          link.download = `MAXIKASH_${(clienteNombre || "CLIENTE").split(" ")[0]}_$${monto || "0"}.jpg`;
+          link.download = formatearNombreArchivo(clienteNombre, monto);
           link.href = imgData;
           link.click();
         } catch (error) {
           console.error("Error al generar imagen:", error);
           alert("Hubo un error al generar la imagen. Intenta de nuevo.");
         } finally {
+          setGenerando(false);
+        }
+      };
+
+      // NUEVO: DESCARGAR TODAS LAS IMÁGENES EN UN ARCHIVO ZIP
+      const descargarZip = async () => {
+        if (registros.length === 0) {
+          alert("No hay clientes en la lista para descargar.");
+          return;
+        }
+        if (!window.JSZip) {
+          alert("La librería JSZip no está cargada.");
+          return;
+        }
+
+        setGenerando(true);
+        const zip = new JSZip();
+        const elemento = fichaRef.current;
+        
+        const originalTransform = elemento.style.transform;
+        const originalTransformOrigin = elemento.style.transformOrigin;
+        
+        elemento.style.transform = 'none';
+        elemento.style.transformOrigin = 'unset';
+
+        // Guardamos el cliente actual para restaurarlo al final
+        const clienteOriginal = registros[indiceActual];
+        const indexOriginal = indiceActual;
+
+        try {
+          for (let i = 0; i < registros.length; i++) {
+            const cliente = registros[i];
+            
+            // 1. Actualizar estado y UI con el cliente actual del ciclo
+            setIndiceActual(i);
+            seleccionarCliente(cliente);
+            setProgresoZip({ actual: i + 1, total: registros.length });
+            
+            // 2. Darle tiempo a React de renderizar la tarjeta con los nuevos datos
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            // 3. Tomar captura
+            const canvas = await html2canvas(elemento, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: true,
+              allowTaint: true,
+              logging: false
+            });
+            
+            // 4. Agregar al zip
+            const imgData = canvas.toDataURL("image/jpeg", 0.95);
+            const base64Data = imgData.replace(/^data:image\/(png|jpeg);base64,/, "");
+            const fileName = formatearNombreArchivo(cliente.nombre, cliente.monto);
+            
+            zip.file(fileName, base64Data, {base64: true});
+          }
+
+          // Generar el archivo ZIP y descargarlo
+          setProgresoZip({ actual: "Comprimiendo...", total: registros.length });
+          const content = await zip.generateAsync({type:"blob"});
+          const url = window.URL.createObjectURL(content);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `Maxikash_Cobranza_Todos_${new Date().getTime()}.zip`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+          console.error("Error al generar el ZIP:", error);
+          alert("Hubo un error al procesar las imágenes en bloque.");
+        } finally {
+          // Restaurar todo a como estaba
+          elemento.style.transform = originalTransform;
+          elemento.style.transformOrigin = originalTransformOrigin;
+          setIndiceActual(indexOriginal);
+          seleccionarCliente(clienteOriginal);
+          setProgresoZip({ actual: 0, total: 0 });
           setGenerando(false);
         }
       };
@@ -276,16 +362,17 @@
 
       return (
         <div className="w-full max-w-[1280px] mx-auto p-4 md:p-6">
-          <header className="bg-[#0A1931] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
+          {/* Header */}
+          <header className="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#FFCC00] text-[#0A1931] font-black text-2xl rounded-full flex items-center justify-center">M</div>
+              <img src="logo.png" alt="Maxikash Logo" className="h-12 w-auto object-contain" onError={(e) => e.target.style.display='none'} />
               <div>
                 <h1 className="text-xl font-black tracking-tight">MAXIKASH COBRANZA • MÓDULO EXCEL</h1>
-                <p className="text-slate-400 text-xs mt-0.5">Lector de gestores.json y espaciado ajustado</p>
+                <p className="text-slate-400 text-xs mt-0.5">Generación en lote ZIP & Espacio Ajustado</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <label className="bg-[#FFCC00] hover:bg-yellow-400 text-[#0A1931] px-5 py-2.5 rounded-xl font-bold cursor-pointer text-sm transition-all shadow-md">
+              <label className="bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] px-5 py-2.5 rounded-xl font-bold cursor-pointer text-sm transition-all shadow-md">
                 📁 Cargar Excel (.xlsx / .csv)
                 <input type="file" accept=".xlsx, .xls, .csv" onChange={handleArchivoExcel} className="hidden" />
               </label>
@@ -293,9 +380,10 @@
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Panel de control y columnas */}
             <div className="lg:col-span-5 space-y-4">
 
-              {/* GESTORES (JSON + MANUAL) */}
+              {/* Nuevos Inputs: Datos del Gestor (Seleccionables) */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <h2 className="text-sm font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
                   <span>👔</span> Datos del Gestor en Turno
@@ -326,7 +414,7 @@
                       placeholder="Ej. Lic Fernando Arenas"
                       value={nombreGestor}
                       onChange={(e) => setNombreGestor(e.target.value)}
-                      className={`w-full p-2.5 rounded-lg font-bold text-[#0A1931] outline-none ${gestorSeleccionado !== 'manual' ? 'bg-slate-100 border border-slate-200' : 'bg-amber-50 border-2 border-[#FFCC00] focus:ring-2 focus:ring-[#FFCC00]'}`}
+                      className={`w-full p-2.5 rounded-lg font-bold text-[#0A1931] outline-none ${gestorSeleccionado !== 'manual' ? 'bg-slate-100 border border-slate-200' : 'bg-amber-50 border-2 border-[#C6D82E] focus:ring-2 focus:ring-[#C6D82E]'}`}
                     />
                   </div>
                   <div>
@@ -337,7 +425,7 @@
                       placeholder="Ej. 6861183207"
                       value={telGestor}
                       onChange={(e) => setTelGestor(e.target.value)}
-                      className={`w-full p-2.5 rounded-lg font-bold text-[#0A1931] outline-none ${gestorSeleccionado !== 'manual' ? 'bg-slate-100 border border-slate-200' : 'bg-amber-50 border-2 border-[#FFCC00] focus:ring-2 focus:ring-[#FFCC00]'}`}
+                      className={`w-full p-2.5 rounded-lg font-bold text-[#0A1931] outline-none ${gestorSeleccionado !== 'manual' ? 'bg-slate-100 border border-slate-200' : 'bg-amber-50 border-2 border-[#C6D82E] focus:ring-2 focus:ring-[#C6D82E]'}`}
                     />
                   </div>
                 </div>
@@ -355,7 +443,7 @@
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <label className="font-bold text-slate-700 block mb-1">👤 Nombre Cliente</label>
-                      <select value={colNombre} onChange={(e) => { setColNombre(e.target.value); procesarRegistros(filasExcel, e.target.value, colMonto, colCelular, colClabe, criterioOrden); }} className="w-full bg-amber-50/60 border-2 border-[#FFCC00] p-2 rounded-lg font-bold text-[#0A1931] focus:ring-2 focus:ring-[#FFCC00] outline-none">
+                      <select value={colNombre} onChange={(e) => { setColNombre(e.target.value); procesarRegistros(filasExcel, e.target.value, colMonto, colCelular, colClabe, criterioOrden); }} className="w-full bg-amber-50/60 border-2 border-[#C6D82E] p-2 rounded-lg font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] outline-none">
                         <option value="">-- Seleccionar --</option>
                         {columnasExcel.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
@@ -414,14 +502,15 @@
                       <div
                         key={item.id}
                         onClick={() => {
+                          if (generando) return; // Evitar clicks durante la generación ZIP
                           setIndiceActual(idx);
                           seleccionarCliente(item);
                         }}
                         className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex justify-between items-center ${
                           indiceActual === idx
-                            ? "bg-[#0A1931] text-white border-[#0A1931] shadow-md ring-2 ring-[#FFCC00]"
+                            ? "bg-[#4348EB] text-white border-[#0A1931] shadow-md ring-2 ring-[#C6D82E]"
                             : "bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100"
-                        }`}
+                        } ${generando ? 'opacity-50 pointer-events-none' : ''}`}
                       >
                         <div className="truncate max-w-[210px]">
                           <p className="font-bold text-sm truncate">
@@ -432,7 +521,7 @@
                           </p>
                         </div>
                         <div className="text-right font-black">
-                          <p className={`text-sm ${indiceActual === idx ? "text-[#FFCC00]" : "text-[#0A1931]"}`}>
+                          <p className={`text-sm ${indiceActual === idx ? "text-[#C6D82E]" : "text-[#0A1931]"}`}>
                             ${formatearMoneda(item.monto)}
                           </p>
                         </div>
@@ -447,19 +536,41 @@
               </div>
 
               {/* Acciones */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <button
-                  onClick={generarImagen}
-                  disabled={generando}
-                  className="w-full bg-[#FFCC00] hover:bg-yellow-400 text-[#0A1931] font-black py-3.5 px-4 rounded-xl text-sm shadow-[0_4px_0_#0A1931] active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>📷</span>
-                  {generando ? "GENERANDO HD..." : "Descargar Imagen HD para WhatsApp"}
-                </button>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+                {/* Overlay de Progreso ZIP */}
+                {generando && progresoZip.total > 0 && (
+                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                    <div className="w-10 h-10 border-4 border-[#E2E8F0] border-t-[#0A1931] rounded-full animate-spin mb-3"></div>
+                    <p className="text-[#0A1931] font-black text-sm uppercase tracking-wide">Procesando Lote...</p>
+                    <p className="text-[#64748B] font-bold text-xs mt-1">
+                      {progresoZip.actual} / {progresoZip.total} Clientes
+                    </p>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={generarImagenUnica}
+                    disabled={generando}
+                    className="w-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-[0_3px_0_#94A3B8] active:translate-y-0.5 transition-all flex items-center justify-center gap-1"
+                  >
+                    <span>📷</span>
+                    Descargar Uno
+                  </button>
+                  <button
+                    onClick={descargarZip}
+                    disabled={generando}
+                    className="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-[0_3px_0_#0A1931] active:translate-y-0.5 transition-all flex items-center justify-center gap-1"
+                  >
+                    <span>🗂️</span>
+                    {generando ? "GENERANDO..." : "Descargar TODOS (ZIP)"}
+                  </button>
+                </div>
 
                 <button
                   onClick={enviarWhatsApp}
-                  className="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                  disabled={generando}
+                  className="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-md active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
                 >
                   <span>💬</span> Abrir Chat con Cliente en WhatsApp
                 </button>
@@ -477,6 +588,7 @@
               <div ref={previewContenedorRef} className="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
                 <div style={{
                   width: "1080px",
+                  // Altura dinámica que coincide con la tarjeta escalada, para no dejar espacio en blanco debajo
                   height: `${alturaFicha * escala}px`,
                   position: "relative"
                 }}>
@@ -495,15 +607,18 @@
                       left: 0
                     }}
                   >
-                    <div className="bg-[#0A1931] px-10 pt-10 pb-8">
+                    <div className="bg-[#4348EB] px-10 pt-10 pb-8">
                       <div className="flex justify-between items-start">
-                        <div>
-                          <div className="text-white font-black leading-none no-compress" style={{ fontSize: "52px" }}>MAXIKASH</div>
-                          <div className="text-slate-400 font-bold mt-2 no-compress" style={{ fontSize: "18px" }}>
-                            CRÉDITO PARA TU MOTO
+                        <div className="flex items-center gap-5">
+                          <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style={{ height: "80px", width: "auto", objectFit: "contain", display: "block" }} onError={(e) => e.target.style.display='none'} />
+                          <div className="flex flex-col justify-center">
+                            <div className="text-white font-black leading-none no-compress" style={{ fontSize: "52px" }}>MAXIKASH</div>
+                            <div className="text-slate-400 font-bold mt-2 no-compress" style={{ fontSize: "18px" }}>
+                              CRÉDITO PARA TU MOTO
+                            </div>
                           </div>
                         </div>
-                        <div className="bg-[#FFCC00] text-[#0A1931] font-black px-6 py-3 rounded-full no-compress" style={{ fontSize: "20px" }}>
+                        <div className="bg-[#C6D82E] text-[#0A1931] font-black px-6 py-3 rounded-full no-compress" style={{ fontSize: "20px" }}>
                           AVISO DE COBRANZA
                         </div>
                       </div>
@@ -511,7 +626,7 @@
                         <div className="text-white font-black leading-tight no-compress" style={{ fontSize: "72px" }}>
                           PONTE AL<br />CORRIENTE
                         </div>
-                        <div className="text-[#FFCC00] font-black mt-2 no-compress" style={{ fontSize: "36px" }}>
+                        <div className="text-[#C6D82E] font-black mt-2 no-compress" style={{ fontSize: "36px" }}>
                           PAGA EL MÍNIMO
                         </div>
                       </div>
@@ -536,41 +651,41 @@
                         <span className="text-[#0A1931] font-bold mt-2 block">Puede pagar por transferencia SPEI a la cuenta STP de abajo.</span>
                       </div>
 
-                      <div className="mt-10 bg-[#0A1931] rounded-2xl border-l-[12px] border-l-[#FFCC00] px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
+                      <div className="mt-10 bg-[#4348EB] rounded-2xl border-l-[12px] border-l-[#C6D82E] px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
                         <div className="flex flex-col w-full">
-                          <div className="text-[#FFCC00] font-black uppercase no-compress mb-1" style={{ fontSize: "20px" }}>
+                          <div className="text-[#C6D82E] font-black uppercase no-compress mb-1" style={{ fontSize: "20px" }}>
                             MONTO MÍNIMO A PAGAR
                           </div>
                           
                           {/* ======= AJUSTE SOLICITADO: MÁS ESPACIO DEBAJO DEL MONTO ======= */}
-                          <div 
-                            className="text-white font-black leading-none break-words no-compress" 
-                            style={{ fontSize: "96px", minHeight: "96px", marginBottom: "40px" }}
-                          >
+                          {/* Hemos agregado un div espaciador explícito para evitar fallas */}
+                          <div className="text-white font-black leading-none break-words no-compress" style={{ fontSize: "96px" }}>
                             ${formatearMoneda(monto)}
                           </div>
                           
-                          <div className="text-[#FFCC00] font-bold no-compress" style={{ fontSize: "22px" }}>
+                          <div style={{ height: "40px" }}></div>
+                          
+                          <div className="text-[#C6D82E] font-bold no-compress" style={{ fontSize: "22px" }}>
                             MXN • {textoVencimiento}
                           </div>
                         </div>
-                        <div className="w-24 h-24 rounded-full bg-[#132A52] border-4 border-[#FFCC00]/30 flex items-center justify-center shrink-0 ml-4">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-[#FFCC00]">
+                        <div className="w-24 h-24 rounded-full bg-[#282C96] border-4 border-[#C6D82E]/30 flex items-center justify-center shrink-0 ml-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-[#C6D82E]">
                             <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
                           </svg>
                         </div>
                       </div>
 
-                      <div className="mt-8 bg-[#FFFBEB] border-4 border-[#FFCC00] rounded-2xl px-8 py-6">
+                      <div className="mt-8 bg-[#F7F9E3] border-4 border-[#C6D82E] rounded-2xl px-8 py-6">
                         <div className="flex justify-between items-start">
-                          <div className="text-[#92400E] font-bold uppercase no-compress" style={{ fontSize: "18px" }}>
+                          <div className="text-[#282C96] font-bold uppercase no-compress" style={{ fontSize: "18px" }}>
                             CUENTA STP / CLABE • TRANSFERENCIA SPEI
                           </div>
                         </div>
                         <div className="mt-4 mono font-black text-[#0A1931] leading-none break-all no-compress" style={{ fontSize: "38px", minHeight: "38px" }}>
                           {clabe.match(/.{1,4}/g)?.join(" ") || clabe || "CUENTA STP"}
                         </div>
-                        <div className="mt-3 text-[#B45309] font-bold no-compress" style={{ fontSize: "16px" }}>
+                        <div className="mt-3 text-[#4348EB] font-bold no-compress" style={{ fontSize: "16px" }}>
                           STP - Sistema de Transferencias y Pagos
                         </div>
                       </div>
@@ -599,11 +714,11 @@
                       </div>
                     </div>
 
-                    <div className="bg-[#0A1931] px-10 py-6 flex justify-between items-center">
+                    <div className="bg-[#4348EB] px-10 py-6 flex justify-between items-center">
                       <div className="text-white font-bold no-compress" style={{ fontSize: "20px" }}>
                         Maxikash - 55 9088 7100 - maxikash.mx
                       </div>
-                      <div className="text-[#FFCC00] font-bold uppercase no-compress" style={{ fontSize: "14px" }}>
+                      <div className="text-[#C6D82E] font-bold uppercase no-compress" style={{ fontSize: "14px" }}>
                         CONFIDENCIAL
                       </div>
                     </div>
