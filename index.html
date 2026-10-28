@@ -49,14 +49,14 @@
       const [colCelular, setColCelular] = useState("");
       const [colClabe, setColClabe] = useState("");
 
-      const [clienteNombre, setClienteNombre] = useState("");
+      const [clienteNombre, setClienteNombre] = useState("MARIA GUADALUPE HERNANDEZ LOPEZ");
       const [monto, setMonto] = useState("628.00");
       const [celular, setCelular] = useState("6861183207");
       const [clabe, setClabe] = useState("646180254000123456");
 
       // inputs capturados manualmente para el Gestor
-      const [nombreGestor, setNombreGestor] = useState("");
-      const [telGestor, setTelGestor] = useState("");
+      const [nombreGestor, setNombreGestor] = useState("Lic Fernando Arenas");
+      const [telGestor, setTelGestor] = useState("6861183207");
 
       const [generando, setGenerando] = useState(false);
       const [copiado, setCopiado] = useState(false);
@@ -221,8 +221,13 @@
           alert("El cliente actual no tiene un número celular válido asignado.");
           return;
         }
+        
+        // MODIFICACIÓN: Mensaje en 3 líneas separadas
         const texto = encodeURIComponent(
-          `Hola ${clienteNombre}, le compartimos su aviso de pago urgente de Maxikash por $${formatearMoneda(monto)} MXN. ` +
+          `Hola ${clienteNombre},
+` +
+          `Le compartimos su aviso de pago urgente de Maxikash por $${formatearMoneda(monto)} MXN.
+` +
           `Puede realizar su transferencia SPEI a su cuenta STP: ${clabe}. Quedamos a sus órdenes.`
         );
         window.open(`https://wa.me/52${celular}?text=${texto}`, "_blank");
@@ -240,7 +245,7 @@
               <div className="w-12 h-12 bg-[#FFCC00] text-[#0A1931] font-black text-2xl rounded-full flex items-center justify-center">M</div>
               <div>
                 <h1 className="text-xl font-black tracking-tight">MAXIKASH COBRANZA • MÓDULO EXCEL</h1>
-                <p className="text-slate-400 text-xs mt-0.5">Monto elevado, Rayo SVG centrado, Gestor manual</p>
+                <p className="text-slate-400 text-xs mt-0.5">Mensaje de WhatsApp en 3 líneas</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
