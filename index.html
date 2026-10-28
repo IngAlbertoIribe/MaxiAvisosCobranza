@@ -38,6 +38,13 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    const GESTORES_PREDEFINIDOS = [
+      { id: "1", nombre: "Lic. Fernando Arenas", telefono: "6861183207" },
+      { id: "2", nombre: "Lic. María Guadalupe", telefono: "6861234567" },
+      { id: "3", nombre: "Lic. Carlos Ruiz", telefono: "6869876543" },
+      { id: "4", nombre: "Lic. Ana Victoria", telefono: "6865551122" }
+    ];
+
     function App() {
       const [filasExcel, setFilasExcel] = useState([]);
       const [columnasExcel, setColumnasExcel] = useState([]);
@@ -53,15 +60,18 @@
       const [monto, setMonto] = useState("");
       const [celular, setCelular] = useState("");
       const [clabe, setClabe] = useState("");
+      
+      const [busqueda, setBusqueda] = useState(""); // Buscador de clientes
 
       // GESTORES DINÁMICOS
       const [listaGestores, setListaGestores] = useState([]);
-      const [gestorSeleccionado, setGestorSeleccionado] = useState("manual");
+      const [gestorSeleccionado, setGestorSeleccionado] = useState("");
       const [nombreGestor, setNombreGestor] = useState("");
       const [telGestor, setTelGestor] = useState("");
+      const [busquedaGestor, setBusquedaGestor] = useState(""); // Buscador de gestores
 
       const [generando, setGenerando] = useState(false);
-      const [progresoZip, setProgresoZip] = useState({ actual: 0, total: 0 }); // Para la barra de progreso
+      const [progresoZip, setProgresoZip] = useState({ actual: 0, total: 0 });
       
       const [escala, setEscala] = useState(1);
       const [criterioOrden, setCriterioOrden] = useState("monto_desc");
@@ -70,7 +80,6 @@
       const previewContenedorRef = useRef(null);
       const fichaRef = useRef(null); 
 
-      // 1. Cargar el JSON de gestores al iniciar
       useEffect(() => {
         fetch('gestores.json')
           .then(res => {
@@ -83,15 +92,37 @@
               setGestorSeleccionado(data[0].id);
               setNombreGestor(data[0].nombre);
               setTelGestor(data[0].telefono);
-            } else {
-              setGestorSeleccionado("manual");
             }
           })
           .catch(err => {
-            console.log("Archivo gestores.json no encontrado, se habilitará modo manual por defecto.", err);
-            setGestorSeleccionado("manual");
+            console.log("Archivo gestores.json no encontrado, cargando lista por defecto.", err);
+            setListaGestores(GESTORES_PREDEFINIDOS);
+            setGestorSeleccionado(GESTORES_PREDEFINIDOS[0].id);
+            setNombreGestor(GESTORES_PREDEFINIDOS[0].nombre);
+            setTelGestor(GESTORES_PREDEFINIDOS[0].telefono);
           });
       }, []);
+
+      // Filtro de gestores
+      const gestoresFiltrados = listaGestores.filter(g => 
+        g.nombre.toLowerCase().includes(busquedaGestor.toLowerCase()) || 
+        g.telefono.includes(busquedaGestor)
+      );
+
+      // Auto-seleccionar el primero de la lista filtrada si el actual se oculta
+      useEffect(() => {
+        if (gestoresFiltrados.length > 0) {
+          const gestorExiste = gestoresFiltrados.find(g => String(g.id) === String(gestorSeleccionado));
+          if (!gestorExiste) {
+            setGestorSeleccionado(gestoresFiltrados[0].id);
+            setNombreGestor(gestoresFiltrados[0].nombre);
+            setTelGestor(gestoresFiltrados[0].telefono);
+          }
+        } else {
+          setNombreGestor("");
+          setTelGestor("");
+        }
+      }, [gestoresFiltrados, gestorSeleccionado]);
 
       useEffect(() => {
         const ajustarEscala = () => {
@@ -203,18 +234,17 @@
       const handleGestorChange = (e) => {
         const idGestor = e.target.value;
         setGestorSeleccionado(idGestor);
-        
-        if (idGestor === "manual") {
-          setNombreGestor("");
-          setTelGestor("");
-        } else {
-          const gestor = listaGestores.find(g => String(g.id) === String(idGestor));
-          if (gestor) {
-            setNombreGestor(gestor.nombre);
-            setTelGestor(gestor.telefono);
-          }
+        const gestor = listaGestores.find(g => String(g.id) === String(idGestor));
+        if (gestor) {
+          setNombreGestor(gestor.nombre);
+          setTelGestor(gestor.telefono);
         }
       };
+      
+      const registrosFiltrados = registros.filter(r => 
+        r.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
+        r.celular.includes(busqueda)
+      );
       
       const formatearNombreArchivo = (nombre, montoStr) => {
         const nombreLimpio = (nombre || "CLIENTE").replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_");
@@ -262,9 +292,8 @@
         }
       };
 
-      // NUEVO: DESCARGAR TODAS LAS IMÁGENES EN UN ARCHIVO ZIP
       const descargarZip = async () => {
-        if (registros.length === 0) {
+        if (registrosFiltrados.length === 0) {
           alert("No hay clientes en la lista para descargar.");
           return;
         }
@@ -283,23 +312,19 @@
         elemento.style.transform = 'none';
         elemento.style.transformOrigin = 'unset';
 
-        // Guardamos el cliente actual para restaurarlo al final
-        const clienteOriginal = registros[indiceActual];
+        const clienteOriginal = registrosFiltrados[indiceActual] || registros[0];
         const indexOriginal = indiceActual;
 
         try {
-          for (let i = 0; i < registros.length; i++) {
-            const cliente = registros[i];
+          for (let i = 0; i < registrosFiltrados.length; i++) {
+            const cliente = registrosFiltrados[i];
             
-            // 1. Actualizar estado y UI con el cliente actual del ciclo
             setIndiceActual(i);
             seleccionarCliente(cliente);
-            setProgresoZip({ actual: i + 1, total: registros.length });
+            setProgresoZip({ actual: i + 1, total: registrosFiltrados.length });
             
-            // 2. Darle tiempo a React de renderizar la tarjeta con los nuevos datos
             await new Promise(resolve => setTimeout(resolve, 800));
             
-            // 3. Tomar captura
             const canvas = await html2canvas(elemento, {
               scale: 2,
               backgroundColor: "#ffffff",
@@ -308,7 +333,6 @@
               logging: false
             });
             
-            // 4. Agregar al zip
             const imgData = canvas.toDataURL("image/jpeg", 0.95);
             const base64Data = imgData.replace(/^data:image\/(png|jpeg);base64,/, "");
             const fileName = formatearNombreArchivo(cliente.nombre, cliente.monto);
@@ -316,13 +340,12 @@
             zip.file(fileName, base64Data, {base64: true});
           }
 
-          // Generar el archivo ZIP y descargarlo
-          setProgresoZip({ actual: "Comprimiendo...", total: registros.length });
+          setProgresoZip({ actual: "Comprimiendo...", total: registrosFiltrados.length });
           const content = await zip.generateAsync({type:"blob"});
           const url = window.URL.createObjectURL(content);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `Maxikash_Cobranza_Todos_${new Date().getTime()}.zip`;
+          link.download = `Maxikash_Cobranza_Lote_${new Date().getTime()}.zip`;
           link.click();
           window.URL.revokeObjectURL(url);
 
@@ -330,11 +353,10 @@
           console.error("Error al generar el ZIP:", error);
           alert("Hubo un error al procesar las imágenes en bloque.");
         } finally {
-          // Restaurar todo a como estaba
           elemento.style.transform = originalTransform;
           elemento.style.transformOrigin = originalTransformOrigin;
           setIndiceActual(indexOriginal);
-          seleccionarCliente(clienteOriginal);
+          if(clienteOriginal) seleccionarCliente(clienteOriginal);
           setProgresoZip({ actual: 0, total: 0 });
           setGenerando(false);
         }
@@ -362,13 +384,12 @@
 
       return (
         <div className="w-full max-w-[1280px] mx-auto p-4 md:p-6">
-          {/* Header */}
           <header className="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
             <div className="flex items-center gap-4">
               <img src="logo.png" alt="Maxikash Logo" className="h-12 w-auto object-contain" onError={(e) => e.target.style.display='none'} />
               <div>
                 <h1 className="text-xl font-black tracking-tight">COBRANZA • MÓDULO EXCEL</h1>
-                <p className="text-slate-400 text-xs mt-0.5">Generación en lote ZIP & Espacio Ajustado</p>
+                <p className="text-slate-400 text-xs mt-0.5">Control de Gestores y Buscadores Integrados</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -380,52 +401,53 @@
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Panel de control y columnas */}
             <div className="lg:col-span-5 space-y-4">
 
-              {/* Nuevos Inputs: Datos del Gestor (Seleccionables) */}
+              {/* GESTORES BLOQUEADOS (SOLO DEL JSON O FILTRADOS) */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <h2 className="text-sm font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
                   <span>👔</span> Datos del Gestor en Turno
                 </h2>
                 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1 text-xs">Seleccionar Gestor:</label>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Buscar y Seleccionar Gestor:</label>
+                  <input 
+                    type="text" 
+                    placeholder="🔍 Buscar por nombre o teléfono..." 
+                    value={busquedaGestor}
+                    onChange={(e) => setBusquedaGestor(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-2"
+                  />
                   <select 
                     value={gestorSeleccionado}
                     onChange={handleGestorChange}
                     className="w-full bg-blue-50 border-2 border-blue-300 p-2.5 rounded-xl font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-3"
                   >
-                    {listaGestores.length > 0 && listaGestores.map(gestor => (
+                    {gestoresFiltrados.length > 0 ? gestoresFiltrados.map(gestor => (
                       <option key={gestor.id} value={gestor.id}>
                         {gestor.nombre}
                       </option>
-                    ))}
-                    <option value="manual">➕ Ingresar otro gestor (Manual)</option>
+                    )) : <option value="">Sin resultados...</option>}
                   </select>
                 </div>
 
-                <div className={`grid grid-cols-2 gap-3 text-xs ${gestorSeleccionado !== "manual" ? "opacity-70 pointer-events-none" : ""}`}>
+                <div className="grid grid-cols-2 gap-3 text-xs opacity-75 pointer-events-none">
                   <div>
-                    <label className="font-bold text-slate-600 block mb-1">Nombre que aparecerá</label>
+                    <label className="font-bold text-slate-600 block mb-1">Nombre asignado</label>
                     <input 
                       type="text"
-                      readOnly={gestorSeleccionado !== "manual"}
-                      placeholder="Ej. Lic Fernando Arenas"
+                      readOnly
                       value={nombreGestor}
-                      onChange={(e) => setNombreGestor(e.target.value)}
-                      className={`w-full p-2.5 rounded-lg font-bold text-[#0A1931] outline-none ${gestorSeleccionado !== 'manual' ? 'bg-slate-100 border border-slate-200' : 'bg-amber-50 border-2 border-[#C6D82E] focus:ring-2 focus:ring-[#C6D82E]'}`}
+                      className="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-600 block mb-1">Teléfono que aparecerá</label>
+                    <label className="font-bold text-slate-600 block mb-1">Teléfono asignado</label>
                     <input 
                       type="text"
-                      readOnly={gestorSeleccionado !== "manual"}
-                      placeholder="Ej. 6861183207"
+                      readOnly
                       value={telGestor}
-                      onChange={(e) => setTelGestor(e.target.value)}
-                      className={`w-full p-2.5 rounded-lg font-bold text-[#0A1931] outline-none ${gestorSeleccionado !== 'manual' ? 'bg-slate-100 border border-slate-200' : 'bg-amber-50 border-2 border-[#C6D82E] focus:ring-2 focus:ring-[#C6D82E]'}`}
+                      className="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none"
                     />
                   </div>
                 </div>
@@ -488,21 +510,32 @@
                 </div>
               </div>
 
-              {/* Lista Dinámica de Clientes */}
+              {/* Lista Dinámica de Clientes y Buscador */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-xs font-black uppercase tracking-wider text-[#0A1931]">
-                    Lista de Clientes ({registros.length})
+                    Lista de Clientes ({registrosFiltrados.length})
                   </h3>
                 </div>
 
+                {/* INPUT DE BÚSQUEDA */}
+                <div className="mb-4">
+                  <input 
+                    type="text" 
+                    placeholder="🔍 Buscar por nombre o celular..." 
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] outline-none"
+                  />
+                </div>
+
                 <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
-                  {registros.length > 0 ? (
-                    registros.map((item, idx) => (
+                  {registrosFiltrados.length > 0 ? (
+                    registrosFiltrados.map((item, idx) => (
                       <div
                         key={item.id}
                         onClick={() => {
-                          if (generando) return; // Evitar clicks durante la generación ZIP
+                          if (generando) return;
                           setIndiceActual(idx);
                           seleccionarCliente(item);
                         }}
@@ -529,7 +562,7 @@
                     ))
                   ) : (
                     <div className="text-center py-8 text-slate-400 text-xs">
-                      No hay clientes cargados.
+                      {registros.length === 0 ? "No hay clientes cargados." : "Ningún cliente coincide con tu búsqueda."}
                     </div>
                   )}
                 </div>
@@ -588,7 +621,7 @@
               <div ref={previewContenedorRef} className="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
                 <div style={{
                   width: "1080px",
-                  // Altura dinámica que coincide con la tarjeta escalada, para no dejar espacio en blanco debajo
+                  // Altura dinámica que coincide con la tarjeta escalada
                   height: `${alturaFicha * escala}px`,
                   position: "relative"
                 }}>
@@ -610,7 +643,7 @@
                     <div className="bg-[#4348EB] px-10 pt-10 pb-8">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-5">
-                          <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style={{ height: "80px", width: "auto", objectFit: "contain", display: "block" }} onError={(e) => e.target.style.display='none'} />
+                          <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style={{ height: "100px", width: "auto", objectFit: "contain", display: "block" }} onError={(e) => e.target.style.display='none'} />
                           <div className="flex flex-col justify-center">
                             <div className="text-white font-black leading-none no-compress" style={{ fontSize: "52px" }}></div>
                             <div className="text-slate-400 font-bold mt-2 no-compress" style={{ fontSize: "18px" }}>
@@ -656,9 +689,6 @@
                           <div className="text-[#C6D82E] font-black uppercase no-compress mb-1" style={{ fontSize: "20px" }}>
                             MONTO MÍNIMO A PAGAR
                           </div>
-                          
-                          {/* ======= AJUSTE SOLICITADO: MÁS ESPACIO DEBAJO DEL MONTO ======= */}
-                          {/* Hemos agregado un div espaciador explícito para evitar fallas */}
                           <div className="text-white font-black leading-none break-words no-compress" style={{ fontSize: "96px" }}>
                             ${formatearMoneda(monto)}
                           </div>
