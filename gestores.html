@@ -25,44 +25,74 @@
   <script type="text/babel">
     const { useState } = React;
 
+    class ErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = { hasError: false, errorInfo: null };
+      }
+      static getDerivedStateFromError(error) {
+        return { hasError: true };
+      }
+      componentDidCatch(error, errorInfo) {
+        this.setState({ errorInfo: error.toString() });
+      }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="p-8">
+              <div className="bg-red-50 border-2 border-red-500 rounded-xl p-6">
+                <h1 className="text-red-700 font-bold text-xl mb-2">Error en la página de Gestores:</h1>
+                <p className="text-red-600 font-mono text-sm">{this.state.errorInfo}</p>
+                <button onClick={() => window.location.reload()} className="mt-4 bg-red-600 text-white px-4 py-2 rounded">Recargar página</button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children; 
+      }
+    }
+
     function GestoresAdmin() {
       const [gestores, setGestores] = useState([]);
 
-      // Cargar Gestores desde Excel (Sobrescribe la lista)
       const handleArchivoExcel = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = (evt) => {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const hoja = workbook.Sheets[workbook.SheetNames[0]];
-          const json = XLSX.utils.sheet_to_json(hoja, { defval: "" });
+          try {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const hoja = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
-          if (json.length > 0) {
-            const nuevosGestores = json.map((fila, index) => {
-              // Buscar columnas sin importar si es mayuscula o minuscula
-              const keys = Object.keys(fila);
-              const colNombre = keys.find(k => k.toLowerCase().includes("nombre") || k.toLowerCase().includes("gestor")) || keys[0];
-              const colTel = keys.find(k => k.toLowerCase().includes("tel") || k.toLowerCase().includes("cel")) || keys[1];
+            if (json.length > 0) {
+              const nuevosGestores = json.map((fila, index) => {
+                const keys = Object.keys(fila);
+                if (keys.length === 0) return null;
+                const colNombre = keys.find(k => k.toLowerCase().includes("nombre") || k.toLowerCase().includes("gestor")) || keys[0];
+                const colTel = keys.find(k => k.toLowerCase().includes("tel") || k.toLowerCase().includes("cel")) || keys[1] || keys[0];
 
-              return {
-                id: String(Date.now() + index), // ID único
-                nombre: String(fila[colNombre]).trim(),
-                telefono: String(fila[colTel]).replace(/\D/g, "") // Solo números
-              };
-            }).filter(g => g.nombre !== "");
+                return {
+                  id: String(Date.now() + index),
+                  nombre: String(fila[colNombre] || "").trim(),
+                  telefono: String(fila[colTel] || "").replace(/\D/g, "")
+                };
+              }).filter(g => g && g.nombre !== "");
 
-            setGestores(nuevosGestores);
-            alert(`¡Se cargaron ${nuevosGestores.length} gestores desde el Excel!`);
+              setGestores(nuevosGestores);
+              alert(`¡Se cargaron ${nuevosGestores.length} gestores desde el Excel!`);
+            }
+          } catch(err) {
+            alert("Hubo un error al procesar el Excel. Asegúrate de que el formato sea correcto.");
+            console.error(err);
           }
         };
         reader.readAsArrayBuffer(file);
-        e.target.value = ""; // Limpiar input
+        e.target.value = "";
       };
 
-      // Cargar un archivo JSON existente para editarlo
       const handleArchivoJSON = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -73,6 +103,8 @@
             if (Array.isArray(data)) {
               setGestores(data);
               alert("Archivo gestores.json cargado correctamente para edición.");
+            } else {
+              alert("El archivo no tiene el formato correcto.");
             }
           } catch (error) {
             alert("Error al leer el archivo JSON.");
@@ -82,32 +114,26 @@
         e.target.value = "";
       };
 
-      // Agregar Gestor vacío manualmente
       const agregarGestorManual = () => {
         setGestores([...gestores, { id: String(Date.now()), nombre: "", telefono: "" }]);
       };
 
-      // Actualizar dato de un gestor
       const actualizarGestor = (id, campo, valor) => {
         setGestores(gestores.map(g => g.id === id ? { ...g, [campo]: valor } : g));
       };
 
-      // Eliminar un gestor
       const eliminarGestor = (id) => {
         if(confirm("¿Estás seguro de eliminar este gestor?")) {
           setGestores(gestores.filter(g => g.id !== id));
         }
       };
 
-      // Exportar a JSON
       const descargarJSON = () => {
         if(gestores.length === 0) {
           alert("La lista está vacía.");
           return;
         }
-        // Limpiamos gestores vacíos antes de guardar
-        const gestoresValidos = gestores.filter(g => g.nombre.trim() !== "");
-        
+        const gestoresValidos = gestores.filter(g => g.nombre && g.nombre.trim() !== "");
         const dataStr = JSON.stringify(gestoresValidos, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -116,16 +142,14 @@
         link.href = url;
         link.download = "gestores.json";
         link.click();
-        
         URL.revokeObjectURL(url);
       };
 
       return (
         <div className="max-w-[900px] mx-auto">
-          {/* Header */}
           <header className="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#C6D82E] text-[#0A1931] font-black text-2xl rounded-full flex items-center justify-center">M</div>
+              <img src="logo.png" alt="Maxikash Logo" className="h-12 w-auto object-contain" onError={(e) => e.target.style.display='none'} />
               <div>
                 <h1 className="text-xl font-black tracking-tight">MAXIKASH • ADMIN DE GESTORES</h1>
                 <p className="text-slate-300 text-xs mt-0.5">Sube tu Excel o edita, y descarga el archivo gestores.json</p>
@@ -140,7 +164,6 @@
             </button>
           </header>
 
-          {/* Panel de Controles */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
               <h3 className="font-bold text-[#0A1931] mb-2 text-sm">1. Carga Masiva (Sobrescribir lista)</h3>
@@ -161,7 +184,6 @@
             </div>
           </div>
 
-          {/* Tabla de Edición (CRUD) */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-black text-[#0A1931] uppercase tracking-wide">
@@ -191,7 +213,7 @@
                       <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Nombre Completo</label>
                       <input 
                         type="text"
-                        value={gestor.nombre}
+                        value={gestor.nombre || ""}
                         placeholder="Ej. Lic. Carlos Ruiz"
                         onChange={(e) => actualizarGestor(gestor.id, "nombre", e.target.value)}
                         className="w-full bg-white border border-slate-300 p-2 rounded-lg font-semibold text-[#0A1931] focus:ring-2 focus:ring-[#4348EB] outline-none text-sm"
@@ -202,7 +224,7 @@
                       <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Teléfono</label>
                       <input 
                         type="text"
-                        value={gestor.telefono}
+                        value={gestor.telefono || ""}
                         placeholder="Solo números"
                         onChange={(e) => actualizarGestor(gestor.id, "telefono", e.target.value.replace(/\D/g, ""))}
                         className="w-full bg-white border border-slate-300 p-2 rounded-lg font-semibold text-[#0A1931] focus:ring-2 focus:ring-[#4348EB] outline-none text-sm"
@@ -221,22 +243,15 @@
               </div>
             )}
           </div>
-          
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-[#0A1931]">
-            <strong className="text-[#4348EB]">Instrucciones de uso en GitHub Pages:</strong>
-            <ol className="list-decimal pl-5 mt-2 space-y-1">
-              <li>Sube tu Excel con la lista del personal. (Debe tener columnas de "Nombre" y "Teléfono")</li>
-              <li>Revisa que los datos estén correctos en la tabla de arriba. Puedes corregir, agregar o borrar si te equivocaste.</li>
-              <li>Haz clic en el botón verde <strong>"Descargar gestores.json"</strong> de arriba.</li>
-              <li>Sube ese archivo recién descargado a tu repositorio de GitHub (arrastrándolo y reemplazando el viejo).</li>
-              <li>¡Listo! Tu Generador de Cobranza leerá la lista actualizada automáticamente.</li>
-            </ol>
-          </div>
         </div>
       );
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    ReactDOM.createRoot(document.getElementById("root")).render(
+      <ErrorBoundary>
+        <GestoresAdmin />
+      </ErrorBoundary>
+    );
   </script>
 </body>
 </html>
