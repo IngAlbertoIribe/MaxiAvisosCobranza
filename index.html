@@ -49,14 +49,14 @@
       const [colCelular, setColCelular] = useState("");
       const [colClabe, setColClabe] = useState("");
 
-      const [clienteNombre, setClienteNombre] = useState("MARIA GUADALUPE HERNANDEZ LOPEZ");
-      const [monto, setMonto] = useState("628.00");
-      const [celular, setCelular] = useState("6861183207");
-      const [clabe, setClabe] = useState("646180254000123456");
+      const [clienteNombre, setClienteNombre] = useState("");
+      const [monto, setMonto] = useState("");
+      const [celular, setCelular] = useState("");
+      const [clabe, setClabe] = useState("");
 
       // inputs capturados manualmente para el Gestor
-      const [nombreGestor, setNombreGestor] = useState("Lic Fernando Arenas");
-      const [telGestor, setTelGestor] = useState("6861183207");
+      const [nombreGestor, setNombreGestor] = useState("");
+      const [telGestor, setTelGestor] = useState("");
 
       const [generando, setGenerando] = useState(false);
       const [copiado, setCopiado] = useState(false);
@@ -164,8 +164,8 @@
       };
 
       const seleccionarCliente = (c) => {
-        setClienteNombre(c.nombre || "SIN NOMBRE");
-        setMonto(String(c.monto || "0.00"));
+        setClienteNombre(c.nombre || "");
+        setMonto(String(c.monto || ""));
         setCelular(c.celular || "");
         setClabe(c.clabe || "");
       };
@@ -205,7 +205,7 @@
 
           const imgData = canvas.toDataURL("image/jpeg", 0.95);
           const link = document.createElement("a");
-          link.download = `MAXIKASH_${(clienteNombre || "CLIENTE").split(" ")[0]}_$${monto}.jpg`;
+          link.download = `MAXIKASH_${(clienteNombre || "CLIENTE").split(" ")[0]}_$${monto || "0"}.jpg`;
           link.href = imgData;
           link.click();
         } catch (error) {
@@ -222,13 +222,12 @@
           return;
         }
         
-        // MODIFICACIÓN: Mensaje en 3 líneas separadas
         const texto = encodeURIComponent(
-          `Hola ${clienteNombre},
+          `Hola ${clienteNombre || "Cliente"},
 ` +
           `Le compartimos su aviso de pago urgente de Maxikash por $${formatearMoneda(monto)} MXN.
 ` +
-          `Puede realizar su transferencia SPEI a su cuenta STP: ${clabe}. Quedamos a sus órdenes.`
+          `Puede realizar su transferencia SPEI a su cuenta STP: ${clabe || "Sin Clabe asignada"}. Quedamos a sus órdenes.`
         );
         window.open(`https://wa.me/52${celular}?text=${texto}`, "_blank");
       };
@@ -245,7 +244,7 @@
               <div className="w-12 h-12 bg-[#FFCC00] text-[#0A1931] font-black text-2xl rounded-full flex items-center justify-center">M</div>
               <div>
                 <h1 className="text-xl font-black tracking-tight">MAXIKASH COBRANZA • MÓDULO EXCEL</h1>
-                <p className="text-slate-400 text-xs mt-0.5">Mensaje de WhatsApp en 3 líneas</p>
+                <p className="text-slate-400 text-xs mt-0.5">Generador listo para exportar</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -270,6 +269,7 @@
                     <label className="font-bold text-slate-700 block mb-1">Nombre del Gestor</label>
                     <input 
                       type="text"
+                      placeholder="Ej. Lic Fernando Arenas"
                       value={nombreGestor}
                       onChange={(e) => setNombreGestor(e.target.value)}
                       className="w-full bg-blue-50/50 border border-blue-200 p-2.5 rounded-lg font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none"
@@ -279,6 +279,7 @@
                     <label className="font-bold text-slate-700 block mb-1">Teléfono del Gestor</label>
                     <input 
                       type="text"
+                      placeholder="Ej. 6861183207"
                       value={telGestor}
                       onChange={(e) => setTelGestor(e.target.value)}
                       className="w-full bg-blue-50/50 border border-blue-200 p-2.5 rounded-lg font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none"
@@ -421,11 +422,10 @@
               <div ref={previewContenedorRef} className="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
                 <div style={{
                   width: "1080px",
-                  // Altura dinámica que coincide con la tarjeta escalada, para no dejar espacio en blanco debajo
                   height: `${alturaFicha * escala}px`,
                   position: "relative"
                 }}>
-                  {/* === ESTA ES LA TARJETA VISIBLE Y LA QUE SE CAPTURA === */}
+                  {/* === TARJETA VISIBLE === */}
                   <div 
                     ref={fichaRef}
                     id="ficha-visible"
@@ -470,7 +470,7 @@
                       <div className="mt-8">
                         <div className="font-black text-[#0A1931] no-compress" style={{ fontSize: "22px" }}>ESTIMADO(A):</div>
                         <div className="mt-3 bg-[#EEF2FF] border-2 border-[#DBEAFE] rounded-xl px-6 py-5">
-                          <div className="font-black text-[#0A1931] break-words no-compress" style={{ fontSize: "32px", lineHeight: "1.2" }}>
+                          <div className="font-black text-[#0A1931] break-words no-compress" style={{ fontSize: "32px", lineHeight: "1.2", minHeight: "38px" }}>
                             {clienteNombre || "NOMBRE DEL CLIENTE"}
                           </div>
                         </div>
@@ -481,22 +481,18 @@
                         <span className="text-[#0A1931] font-bold mt-2 block">Puede pagar por transferencia SPEI a la cuenta STP de abajo.</span>
                       </div>
 
-                      {/* AJUSTE DEL MONTO SUBIDO, CON MÁRGENES REDUCIDOS y DÍAS VENCIDOS */}
                       <div className="mt-10 bg-[#0A1931] rounded-2xl border-l-[12px] border-l-[#FFCC00] px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
                         <div className="flex flex-col">
                           <div className="text-[#FFCC00] font-black uppercase no-compress mb-1" style={{ fontSize: "20px" }}>
                             MONTO MÍNIMO A PAGAR
                           </div>
-                          {/* El margen negativo acerca el monto al título de arriba */}
-                          <div className="text-white font-black leading-none break-words no-compress -mt-1" style={{ fontSize: "96px" }}>
+                          <div className="text-white font-black leading-none break-words no-compress -mt-1" style={{ fontSize: "96px", minHeight: "96px" }}>
                             ${formatearMoneda(monto)}
                           </div>
-                          {/* El margin top de abajo separa los días vencidos del monto */}
                           <div className="text-[#FFCC00] font-bold no-compress mt-2" style={{ fontSize: "22px" }}>
                             MXN • {textoVencimiento}
                           </div>
                         </div>
-                        {/* ICONO DEL RAYO CENTRADO CON SVG */}
                         <div className="w-24 h-24 rounded-full bg-[#132A52] border-4 border-[#FFCC00]/30 flex items-center justify-center shrink-0 ml-4">
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-[#FFCC00]">
                             <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
@@ -510,8 +506,8 @@
                             CUENTA STP / CLABE • TRANSFERENCIA SPEI
                           </div>
                         </div>
-                        <div className="mt-4 mono font-black text-[#0A1931] leading-none break-all no-compress" style={{ fontSize: "38px" }}>
-                          {clabe.match(/.{1,4}/g)?.join(" ") || clabe || "6461 8025 4000 123456"}
+                        <div className="mt-4 mono font-black text-[#0A1931] leading-none break-all no-compress" style={{ fontSize: "38px", minHeight: "38px" }}>
+                          {clabe.match(/.{1,4}/g)?.join(" ") || clabe || "CUENTA STP"}
                         </div>
                         <div className="mt-3 text-[#B45309] font-bold no-compress" style={{ fontSize: "16px" }}>
                           STP - Sistema de Transferencias y Pagos
@@ -523,11 +519,11 @@
                           <div className="text-[#1E40AF] font-black uppercase no-compress" style={{ fontSize: "18px" }}>
                             CONTACTO DE SU GESTOR
                           </div>
-                          <div className="mt-3 font-bold text-[#0A1931] break-words no-compress" style={{ fontSize: "26px" }}>
-                            Gestor: {nombreGestor}
+                          <div className="mt-3 font-bold text-[#0A1931] break-words no-compress" style={{ fontSize: "26px", minHeight: "26px" }}>
+                            Gestor: {nombreGestor || "Sin asignar"}
                           </div>
-                          <div className="mt-1 font-black text-[#0A1931] no-compress" style={{ fontSize: "28px" }}>
-                            Tel: {telGestor}
+                          <div className="mt-1 font-black text-[#0A1931] no-compress" style={{ fontSize: "28px", minHeight: "28px" }}>
+                            Tel: {telGestor || "Sin asignar"}
                           </div>
                         </div>
                         <div className="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border-2 border-[#DBEAFE] shadow-sm shrink-0">
