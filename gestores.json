@@ -1,0 +1,17 @@
+[
+  {
+    "id": "1",
+    "nombre": "Lic. Fernando Arenas",
+    "telefono": "6861183207"
+  },
+  {
+    "id": "2",
+    "nombre": "Lic. Maria",
+    "telefono": "6861234567"
+  },
+  {
+    "id": "3",
+    "nombre": "Lic. Carlos",
+    "telefono": "6860000000"
+  }
+]
