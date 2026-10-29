@@ -6,252 +6,226 @@
   <title>Maxikash - Administrador de Gestores</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React & ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel para compilar JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- SheetJS para leer archivos Excel -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap');
     * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
-<body class="bg-[#E8EEF7] min-h-screen p-4 md:p-8">
-  <div id="root"></div>
+<body class="bg-[#E8EEF7] min-h-screen text-slate-800">
 
-  <script type="text/babel">
-    const { useState } = React;
-
-    class ErrorBoundary extends React.Component {
-      constructor(props) {
-        super(props);
-        this.state = { hasError: false, errorInfo: null };
-      }
-      static getDerivedStateFromError(error) {
-        return { hasError: true };
-      }
-      componentDidCatch(error, errorInfo) {
-        this.setState({ errorInfo: error.toString() });
-      }
-      render() {
-        if (this.state.hasError) {
-          return (
-            <div className="p-8">
-              <div className="bg-red-50 border-2 border-red-500 rounded-xl p-6">
-                <h1 className="text-red-700 font-bold text-xl mb-2">Error en la página de Gestores:</h1>
-                <p className="text-red-600 font-mono text-sm">{this.state.errorInfo}</p>
-                <button onClick={() => window.location.reload()} className="mt-4 bg-red-600 text-white px-4 py-2 rounded">Recargar página</button>
-              </div>
-            </div>
-          );
-        }
-        return this.props.children; 
-      }
-    }
-
-    function GestoresAdmin() {
-      const [gestores, setGestores] = useState([]);
-
-      const handleArchivoExcel = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          try {
-            const data = new Uint8Array(evt.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-            const hoja = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(hoja, { defval: "" });
-
-            if (json.length > 0) {
-              const nuevosGestores = json.map((fila, index) => {
-                const keys = Object.keys(fila);
-                if (keys.length === 0) return null;
-                const colNombre = keys.find(k => k.toLowerCase().includes("nombre") || k.toLowerCase().includes("gestor")) || keys[0];
-                const colTel = keys.find(k => k.toLowerCase().includes("tel") || k.toLowerCase().includes("cel")) || keys[1] || keys[0];
-
-                return {
-                  id: String(Date.now() + index),
-                  nombre: String(fila[colNombre] || "").trim(),
-                  telefono: String(fila[colTel] || "").replace(/\D/g, "")
-                };
-              }).filter(g => g && g.nombre !== "");
-
-              setGestores(nuevosGestores);
-              alert(`¡Se cargaron ${nuevosGestores.length} gestores desde el Excel!`);
-            }
-          } catch(err) {
-            alert("Hubo un error al procesar el Excel. Asegúrate de que el formato sea correcto.");
-            console.error(err);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-        e.target.value = "";
-      };
-
-      const handleArchivoJSON = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          try {
-            const data = JSON.parse(evt.target.result);
-            if (Array.isArray(data)) {
-              setGestores(data);
-              alert("Archivo gestores.json cargado correctamente para edición.");
-            } else {
-              alert("El archivo no tiene el formato correcto.");
-            }
-          } catch (error) {
-            alert("Error al leer el archivo JSON.");
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = "";
-      };
-
-      const agregarGestorManual = () => {
-        setGestores([...gestores, { id: String(Date.now()), nombre: "", telefono: "" }]);
-      };
-
-      const actualizarGestor = (id, campo, valor) => {
-        setGestores(gestores.map(g => g.id === id ? { ...g, [campo]: valor } : g));
-      };
-
-      const eliminarGestor = (id) => {
-        if(confirm("¿Estás seguro de eliminar este gestor?")) {
-          setGestores(gestores.filter(g => g.id !== id));
-        }
-      };
-
-      const descargarJSON = () => {
-        if(gestores.length === 0) {
-          alert("La lista está vacía.");
-          return;
-        }
-        const gestoresValidos = gestores.filter(g => g.nombre && g.nombre.trim() !== "");
-        const dataStr = JSON.stringify(gestoresValidos, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "gestores.json";
-        link.click();
-        URL.revokeObjectURL(url);
-      };
-
-      return (
-        <div className="max-w-[900px] mx-auto">
-          <header className="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
-            <div className="flex items-center gap-4">
-              <img src="logo.png" alt="Maxikash Logo" className="h-12 w-auto object-contain" onError={(e) => e.target.style.display='none'} />
-              <div>
-                <h1 className="text-xl font-black tracking-tight">MAXIKASH • ADMIN DE GESTORES</h1>
-                <p className="text-slate-300 text-xs mt-0.5">Sube tu Excel o edita, y descarga el archivo gestores.json</p>
-              </div>
-            </div>
-            
-            <button 
-              onClick={descargarJSON}
-              className="bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] px-6 py-3 rounded-xl font-black shadow-lg transition-transform active:scale-95 flex items-center gap-2"
-            >
-              ⬇️ Descargar gestores.json
-            </button>
-          </header>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-              <h3 className="font-bold text-[#0A1931] mb-2 text-sm">1. Carga Masiva (Sobrescribir lista)</h3>
-              <label className="block w-full text-center bg-white border-2 border-dashed border-blue-300 hover:border-[#4348EB] text-blue-700 font-semibold py-3 rounded-lg cursor-pointer transition-colors text-sm">
-                📁 Subir Excel (.xlsx / .csv)
-                <input type="file" accept=".xlsx, .xls, .csv" onChange={handleArchivoExcel} className="hidden" />
-              </label>
-              <p className="text-[10px] text-slate-500 mt-2 text-center">Debe tener columnas "Nombre" y "Telefono"</p>
-            </div>
-            
-            <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
-              <h3 className="font-bold text-[#0A1931] mb-2 text-sm">Opcional: Editar JSON anterior</h3>
-              <label className="block w-full text-center bg-white border-2 border-dashed border-slate-300 hover:border-slate-500 text-slate-600 font-semibold py-3 rounded-lg cursor-pointer transition-colors text-sm">
-                📄 Cargar gestores.json
-                <input type="file" accept=".json" onChange={handleArchivoJSON} className="hidden" />
-              </label>
-              <p className="text-[10px] text-slate-500 mt-2 text-center">Para continuar editando tu lista actual</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-black text-[#0A1931] uppercase tracking-wide">
-                Lista Actual ({gestores.length})
-              </h2>
-              <button 
-                onClick={agregarGestorManual}
-                className="bg-[#0A1931] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors"
-              >
-                ➕ Agregar Manual
-              </button>
-            </div>
-
-            {gestores.length === 0 ? (
-              <div className="text-center py-10 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 font-medium">
-                No hay gestores. Sube un archivo Excel o agrega uno manual.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {gestores.map((gestor, idx) => (
-                  <div key={gestor.id} className="flex flex-col sm:flex-row gap-3 items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 font-bold flex items-center justify-center shrink-0 text-xs">
-                      {idx + 1}
-                    </div>
-                    
-                    <div className="flex-1 w-full">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Nombre Completo</label>
-                      <input 
-                        type="text"
-                        value={gestor.nombre || ""}
-                        placeholder="Ej. Lic. Carlos Ruiz"
-                        onChange={(e) => actualizarGestor(gestor.id, "nombre", e.target.value)}
-                        className="w-full bg-white border border-slate-300 p-2 rounded-lg font-semibold text-[#0A1931] focus:ring-2 focus:ring-[#4348EB] outline-none text-sm"
-                      />
-                    </div>
-                    
-                    <div className="flex-1 w-full sm:max-w-[200px]">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Teléfono</label>
-                      <input 
-                        type="text"
-                        value={gestor.telefono || ""}
-                        placeholder="Solo números"
-                        onChange={(e) => actualizarGestor(gestor.id, "telefono", e.target.value.replace(/\D/g, ""))}
-                        className="w-full bg-white border border-slate-300 p-2 rounded-lg font-semibold text-[#0A1931] focus:ring-2 focus:ring-[#4348EB] outline-none text-sm"
-                      />
-                    </div>
-                    
-                    <button 
-                      onClick={() => eliminarGestor(gestor.id)}
-                      className="mt-4 sm:mt-5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2.5 rounded-lg transition-colors"
-                      title="Eliminar Gestor"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+  <div class="w-full max-w-4xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <header class="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
+      <div class="flex items-center gap-4">
+        <img src="logo.png" alt="Logo" class="h-10 w-auto object-contain" onerror="this.style.display='none'" />
+        <div>
+          <h1 class="text-xl font-black tracking-tight">ADMINISTRADOR DE GESTORES</h1>
+          <p class="text-slate-300 text-xs mt-0.5">Gestión de Personal y Descarga de gestores.json</p>
         </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all border border-white/20">
+          ⬅ Generador
+        </a>
+        <a href="directorio.html" class="bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-md">
+          📖 Directorio
+        </a>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <!-- Formulario para agregar / editar -->
+      <div class="md:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 id="formTitulo" class="text-sm font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
+          <span>➕</span> Agregar Nuevo Gestor
+        </h2>
+        <form id="gestorForm" class="space-y-3">
+          <input type="hidden" id="gestorId" />
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre Completo:</label>
+            <input type="text" id="gestorNombre" required placeholder="Ej. Lic. Fernando Arenas" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold focus:ring-2 focus:ring-[#4348EB] outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono (WhatsApp 10 dígitos):</label>
+            <input type="tel" id="gestorTelefono" required maxlength="10" placeholder="Ej. 6861183207" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold focus:ring-2 focus:ring-[#4348EB] outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Puesto / Zona (Opcional):</label>
+            <input type="text" id="gestorPuesto" placeholder="Ej. Cobranza Domiciliaria / Mexicali" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#4348EB] outline-none" />
+          </div>
+          <div class="pt-2 flex gap-2">
+            <button type="submit" id="btnGuardar" class="flex-1 bg-[#4348EB] hover:bg-[#3439CA] text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-all">
+              Guardar Gestor
+            </button>
+            <button type="button" id="btnCancelarEdicion" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2.5 rounded-xl text-xs transition-all">
+              Cancelar
+            </button>
+          </div>
+        </form>
+
+        <div class="pt-4 border-t border-slate-100">
+          <h3 class="text-xs font-black text-[#0A1931] uppercase mb-2">Exportar a GitHub</h3>
+          <p class="text-[11px] text-slate-500 mb-3">Descarga el archivo actualizado y súbelo a tu repositorio en GitHub para sincronizar a todos los gestores.</p>
+          <button id="btnDescargarJSON" class="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-2.5 rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5">
+            <span>💾</span> Descargar gestores.json
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Gestores Registrados -->
+      <div class="md:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+        <div class="flex justify-between items-center mb-3">
+          <h3 id="contadorGestores" class="text-xs font-black uppercase tracking-wider text-[#0A1931]">Gestores Activos (0)</h3>
+          <input type="text" id="buscarGestor" placeholder="🔍 Filtrar..." class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium outline-none focus:ring-2 focus:ring-[#4348EB] w-36" />
+        </div>
+
+        <div id="listaContenedor" class="space-y-2 overflow-y-auto max-h-[500px] pr-1 flex-1">
+          <div class="text-center py-10 text-slate-400 text-xs">Cargando gestores...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GESTORES_DEFAULT = [
+      { id: "1", nombre: "Lic. Fernando Arenas", telefono: "6861183207", puesto: "Coordinación Mexicali" },
+      { id: "2", nombre: "Lic. María Guadalupe", telefono: "6861234567", puesto: "Gestor Domiciliario" },
+      { id: "3", nombre: "Lic. Carlos Ruiz", telefono: "6869876543", puesto: "Gestor Telefónico" },
+      { id: "4", nombre: "Lic. Ana Victoria", telefono: "6865551122", puesto: "Atención Especial" }
+    ];
+
+    let gestores = [];
+
+    const gestorForm = document.getElementById('gestorForm');
+    const formTitulo = document.getElementById('formTitulo');
+    const gestorId = document.getElementById('gestorId');
+    const gestorNombre = document.getElementById('gestorNombre');
+    const gestorTelefono = document.getElementById('gestorTelefono');
+    const gestorPuesto = document.getElementById('gestorPuesto');
+    const btnGuardar = document.getElementById('btnGuardar');
+    const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
+    const btnDescargarJSON = document.getElementById('btnDescargarJSON');
+    const listaContenedor = document.getElementById('listaContenedor');
+    const contadorGestores = document.getElementById('contadorGestores');
+    const buscarGestor = document.getElementById('buscarGestor');
+
+    // Cargar inicial
+    fetch('gestores.json?nocache=' + Date.now())
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        gestores = Array.isArray(data) && data.length > 0 ? data : GESTORES_DEFAULT;
+        renderizar();
+      })
+      .catch(() => {
+        gestores = GESTORES_DEFAULT;
+        renderizar();
+      });
+
+    function renderizar() {
+      const q = (buscarGestor.value || "").toLowerCase();
+      const filtrados = gestores.filter(g => 
+        (g.nombre || "").toLowerCase().includes(q) || 
+        (g.telefono || "").includes(q) ||
+        (g.puesto || "").toLowerCase().includes(q)
       );
+
+      contadorGestores.textContent = `Gestores Activos (${filtrados.length})`;
+      listaContenedor.innerHTML = "";
+
+      if (filtrados.length === 0) {
+        listaContenedor.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">No hay gestores que coincidan.</div>';
+        return;
+      }
+
+      filtrados.forEach(g => {
+        const item = document.createElement('div');
+        item.className = "p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-3 hover:bg-white hover:border-blue-200 transition-all";
+        item.innerHTML = `
+          <div class="truncate">
+            <h4 class="font-bold text-sm text-[#0A1931]">${g.nombre}</h4>
+            <div class="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+              <span class="mono font-bold text-[#4348EB]">📱 ${g.telefono}</span>
+              ${g.puesto ? `<span>• ${g.puesto}</span>` : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="editarGestor('${g.id}')" class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg text-xs font-bold transition-all" title="Editar">✏️</button>
+            <button onclick="eliminarGestor('${g.id}')" class="p-2 hover:bg-red-50 text-red-600 rounded-lg text-xs font-bold transition-all" title="Eliminar">🗑️</button>
+          </div>
+        `;
+        listaContenedor.appendChild(item);
+      });
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(
-      <ErrorBoundary>
-        <GestoresAdmin />
-      </ErrorBoundary>
-    );
+    buscarGestor.addEventListener('input', renderizar);
+
+    gestorForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = gestorId.value;
+      const nombre = gestorNombre.value.trim();
+      const telefono = gestorTelefono.value.replace(/\D/g, "");
+      const puesto = gestorPuesto.value.trim();
+
+      if (id) {
+        // Editar
+        gestores = gestores.map(g => g.id === id ? { ...g, nombre, telefono, puesto } : g);
+      } else {
+        // Nuevo
+        gestores.push({
+          id: String(Date.now()),
+          nombre,
+          telefono,
+          puesto
+        });
+      }
+
+      resetearFormulario();
+      renderizar();
+    });
+
+    window.editarGestor = (id) => {
+      const g = gestores.find(item => item.id === id);
+      if (!g) return;
+      gestorId.value = g.id;
+      gestorNombre.value = g.nombre;
+      gestorTelefono.value = g.telefono;
+      gestorPuesto.value = g.puesto || "";
+      formTitulo.innerHTML = '<span>✏️</span> Editar Gestor';
+      btnGuardar.textContent = "Actualizar Gestor";
+      btnCancelarEdicion.classList.remove('hidden');
+    };
+
+    window.eliminarGestor = (id) => {
+      if (confirm("¿Estás seguro de eliminar a este gestor?")) {
+        gestores = gestores.filter(g => g.id !== id);
+        resetearFormulario();
+        renderizar();
+      }
+    };
+
+    btnCancelarEdicion.addEventListener('click', resetearFormulario);
+
+    function resetearFormulario() {
+      gestorId.value = "";
+      gestorNombre.value = "";
+      gestorTelefono.value = "";
+      gestorPuesto.value = "";
+      formTitulo.innerHTML = '<span>➕</span> Agregar Nuevo Gestor';
+      btnGuardar.textContent = "Guardar Gestor";
+      btnCancelarEdicion.classList.add('hidden');
+    }
+
+    // Descargar gestores.json
+    btnDescargarJSON.addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gestores, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "gestores.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
   </script>
 </body>
 </html>
