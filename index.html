@@ -30,7 +30,7 @@
         <!-- Logo Header web -->
         <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain block" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
         <div>
-          <h1 class="text-xl font-black tracking-tight">COBRANZA • EMISIÓN MASIVA</h1>
+          <h1 class="text-xl font-black tracking-tight">MAXIKASH COBRANZA • EMISIÓN MASIVA</h1>
           <p class="text-slate-300 text-xs mt-0.5">1. Excel Gestores &rarr; 2. Excel Cuentas &rarr; 3. Exportación Masiva</p>
         </div>
       </div>
@@ -527,7 +527,7 @@
       };
 
       llenar(colClienteSel, ["nombre", "cliente", "titular", "deudor"], 0);
-      llenar(colMontoSel, ["monto", "minimo", "saldo", "pago", "adeudo", "total"], 1);
+      llenar(colMontoSel, ["saldo", "cuota", "monto", "total", "adeudo", "minimo", "pago"], 1);
       llenar(colCelularSel, ["celular", "tel", "telefono", "movil", "whatsapp"], 2);
       llenar(colClabeSel, ["clabe", "cuenta", "stp", "transferencia"], 3);
 
@@ -550,16 +550,21 @@
     });
 
     function buscarDatosGestor(nombreBuscado, usaColumnaGestor) {
-      if (usaColumnaGestor && !nombreBuscado) {
-        return { nombre: "SIN_ASIGNAR", telefono: "" };
+      if (usaColumnaGestor) {
+        if (!nombreBuscado || String(nombreBuscado).trim() === "") {
+          return { nombre: "SIN_ASIGNAR", telefono: "" };
+        }
+        const nb = String(nombreBuscado).toLowerCase().trim();
+        const encontrado = listaGestoresProcesados.find(g => {
+          const gNom = (g.nombre || "").toLowerCase();
+          return gNom.includes(nb) || nb.includes(gNom);
+        });
+        // FIX: Si el nombre viene en el Excel, JAMÁS se asigna al gestor por defecto, aunque no esté en la base.
+        return encontrado || { nombre: nombreBuscado.trim(), telefono: "Sin número" };
+      } else {
+        // Si no se mapeó columna de Gestor, todos van al default
+        return gestorPorDefecto || { nombre: "SIN_ASIGNAR", telefono: "" };
       }
-      if (!nombreBuscado && gestorPorDefecto) return gestorPorDefecto;
-      const nb = (nombreBuscado || "").toLowerCase().trim();
-      const encontrado = listaGestoresProcesados.find(g => {
-        const gNom = (g.nombre || "").toLowerCase();
-        return gNom.includes(nb) || nb.includes(gNom);
-      });
-      return encontrado || gestorPorDefecto || { nombre: nombreBuscado || "SIN_ASIGNAR", telefono: "" };
     }
 
     function procesarCuentas() {
