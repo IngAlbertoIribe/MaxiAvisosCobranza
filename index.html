@@ -124,10 +124,16 @@
                 <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">🏦 CLABE / STP</label>
                 <select id="colClabeSel" class="w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg font-semibold text-xs outline-none"></select>
               </div>
-              <div class="col-span-2">
-                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">👔 Columna Gestor Asignado (Opcional):</label>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">👔 Gestor Asignado (Opcional):</label>
                 <select id="colGestorSel" class="w-full bg-blue-50/60 border border-blue-200 p-1.5 rounded-lg font-bold text-[#4348EB] text-xs outline-none">
                   <option value="">-- Usar Gestor por Defecto --</option>
+                </select>
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">📍 Región / Ciudad (Opcional):</label>
+                <select id="colCuentaRegionSel" class="w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg font-semibold text-xs outline-none">
+                  <option value="">-- Usar Default --</option>
                 </select>
               </div>
             </div>
@@ -314,6 +320,7 @@
     const colCelularSel = document.getElementById('colCelularSel');
     const colClabeSel = document.getElementById('colClabeSel');
     const colGestorSel = document.getElementById('colGestorSel');
+    const colCuentaRegionSel = document.getElementById('colCuentaRegionSel');
 
     const contadorLista = document.getElementById('contadorLista');
     const buscarCuentaInput = document.getElementById('buscarCuentaInput');
@@ -365,7 +372,6 @@
     function generarNombreArchivo(cliente, monto) {
       const c = sanitizarNombre(cliente);
       const m = Math.round(parseFloat(monto) || 0);
-      // Removido MAXIKASH_ y el símbolo de $
       return `${c}_${m}.jpg`;
     }
 
@@ -380,6 +386,7 @@
       previewSizer.style.height = `${alto * escalaActual}px`;
       labelEscala.textContent = `${Math.round(escalaActual * 100)}%`;
     }
+    
     window.addEventListener('resize', () => ajustarEscala(true));
     sliderEscala.addEventListener('input', (e) => {
       escalaActual = parseFloat(e.target.value);
@@ -534,34 +541,41 @@
         colGestorSel.appendChild(opt);
       });
       colGestorSel.value = gMatch || "";
+
+      llenar(colCuentaRegionSel, ["region", "ciudad", "zona", "plaza", "sucursal", "estado", "municipio"], -1);
     }
 
-    [colClienteSel, colMontoSel, colCelularSel, colClabeSel, colGestorSel, selectOrden].forEach(s => {
+    [colClienteSel, colMontoSel, colCelularSel, colClabeSel, colGestorSel, colCuentaRegionSel, selectOrden].forEach(s => {
       s.addEventListener('change', procesarCuentas);
     });
 
-    function buscarDatosGestor(nombreBuscado) {
+    function buscarDatosGestor(nombreBuscado, usaColumnaGestor) {
+      if (usaColumnaGestor && !nombreBuscado) {
+        return { nombre: "SIN_ASIGNAR", telefono: "" };
+      }
       if (!nombreBuscado && gestorPorDefecto) return gestorPorDefecto;
       const nb = (nombreBuscado || "").toLowerCase().trim();
       const encontrado = listaGestoresProcesados.find(g => {
         const gNom = (g.nombre || "").toLowerCase();
         return gNom.includes(nb) || nb.includes(gNom);
       });
-      return encontrado || gestorPorDefecto || { nombre: nombreBuscado || "Lic. MaxiKash", telefono: "6861183207" };
+      return encontrado || gestorPorDefecto || { nombre: nombreBuscado || "SIN_ASIGNAR", telefono: "" };
     }
 
     function procesarCuentas() {
       if (baseCuentasRaw.length === 0) return;
+      const usaColG = !!colGestorSel.value;
       const cCol = colClienteSel.value;
       const mCol = colMontoSel.value;
       const tCol = colCelularSel.value;
       const clCol = colClabeSel.value;
       const gCol = colGestorSel.value;
+      const rCol = colCuentaRegionSel.value;
       const orden = selectOrden.value;
 
       let preCuentas = baseCuentasRaw.map((fila, idx) => {
         const gestorNombreFila = gCol ? String(fila[gCol] || "").trim() : "";
-        const gestorObj = buscarDatosGestor(gestorNombreFila);
+        const gestorObj = buscarDatosGestor(gestorNombreFila, usaColG);
 
         return {
           id: idx,
@@ -570,17 +584,18 @@
           celular: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : "",
           clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : "",
           gestorNombre: gestorObj.nombre,
-          gestorTelefono: gestorObj.telefono
+          gestorTelefono: gestorObj.telefono,
+          regionCuenta: rCol ? String(fila[rCol] || "").trim() : ""
         };
       });
 
       // FILTRAR LOS QUE NO DEBEN (Monto <= 0)
       preCuentas = preCuentas.filter(c => c.monto > 0);
 
-      // FILTRAR REPETIDOS POR NOMBRE DE CLIENTE
+      // FILTRAR REPETIDOS POR NOMBRE DE CLIENTE + MONTO + GESTOR
       const mapUnicosCuentas = new Map();
       preCuentas.forEach(c => {
-        const key = c.cliente;
+        const key = `${c.cliente}_${c.monto}_${c.gestorNombre}`;
         if (key && !mapUnicosCuentas.has(key)) {
           mapUnicosCuentas.set(key, c);
         }
@@ -646,6 +661,10 @@
       cardClabe.textContent = c.clabe.match(/.{1,4}/g)?.join(" ") || c.clabe || "CUENTA STP";
       cardGestorNombre.textContent = `Gestor: ${c.gestorNombre}`;
       cardGestorTel.textContent = `Tel: ${c.gestorTelefono}`;
+      
+      const region = c.regionCuenta ? c.regionCuenta : "Mexicali, B.C.";
+      fechaHoyTxt.textContent = `${hoyStr} • ${region}`;
+      
       ajustarEscala(false);
     }
 
@@ -696,7 +715,7 @@
           const nombreCarpetaGestor = sanitizarNombre(c.gestorNombre) || "SIN_GESTOR_ASIGNADO";
           const carpetaGestor = zip.folder(nombreCarpetaGestor);
           
-          // Nombrar archivo con el cliente y monto (ya sin maxikash y sin $)
+          // Nombrar archivo con el cliente y monto
           const nombreArchivo = generarNombreArchivo(c.cliente, c.monto);
           
           // Guardar imagen dentro de la carpeta del gestor correspondiente
