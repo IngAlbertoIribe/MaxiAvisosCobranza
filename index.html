@@ -730,7 +730,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `MAXIKASH_LOTE_POR_GESTORES_${Date.now()}.zip`;
+        link.download = `LOTE_AVISOS_${Date.now()}.zip`;
         link.click();
         URL.revokeObjectURL(url);
       } catch (err) {
