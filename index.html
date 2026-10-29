@@ -362,6 +362,13 @@
       return dias === 0 ? "VENCE HOY" : `${dias} DÍAS VENCIDOS`;
     }
 
+    function generarNombreArchivo(cliente, monto) {
+      const c = sanitizarNombre(cliente);
+      const m = Math.round(parseFloat(monto) || 0);
+      // Removido MAXIKASH_ y el símbolo de $
+      return `${c}_${m}.jpg`;
+    }
+
     function ajustarEscala(auto = true) {
       if (auto && previewWrapper) {
         const anchoDisp = previewWrapper.clientWidth - 32;
@@ -388,7 +395,7 @@
     fechaHoyTxt.textContent = `${hoyStr} • Mexicali, B.C.`;
     cardVencimiento.textContent = `MXN • ${calcularDiasVencidos()}`;
 
-    // 1. CARGA DE GESTORES SOLO DESDE EXCEL
+    // 1. CARGA DE GESTORES (FILTRADO DE REPETIDOS)
     fileGestoresInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -400,7 +407,6 @@
         if (json.length > 0) {
           baseGestoresRaw = json;
           columnasGestores = Object.keys(json[0]);
-          badgeGestoresCargados.textContent = `${json.length} gestores`;
           configurarMapeoGestores();
           procesarListaGestores();
         }
@@ -435,11 +441,23 @@
       const nCol = colGestorNombreSel.value;
       const tCol = colGestorTelSel.value;
 
-      listaGestoresProcesados = baseGestoresRaw.map((fila, idx) => ({
+      let preGestores = baseGestoresRaw.map((fila, idx) => ({
         id: String(idx + 1),
         nombre: nCol ? String(fila[nCol] || "").trim() : `Gestor ${idx + 1}`,
         telefono: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : ""
       }));
+
+      // ELIMINAR GESTORES REPETIDOS (POR NOMBRE EXACTO)
+      const mapUnicos = new Map();
+      preGestores.forEach(g => {
+        const key = g.nombre.toUpperCase();
+        if (key && !mapUnicos.has(key)) {
+          mapUnicos.set(key, g);
+        }
+      });
+      listaGestoresProcesados = Array.from(mapUnicos.values());
+
+      badgeGestoresCargados.textContent = `${listaGestoresProcesados.length} gestores (sin duplicados)`;
 
       selectGestorDefault.innerHTML = "";
       listaGestoresProcesados.forEach(g => {
@@ -467,7 +485,7 @@
       if (baseCuentasRaw.length > 0) procesarCuentas();
     });
 
-    // 2. CARGA DE CUENTAS SOLO DESDE EXCEL
+    // 2. CARGA DE CUENTAS (FILTRADO DE CERO DEUDA Y REPETIDOS)
     fileCuentasInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -479,7 +497,6 @@
         if (json.length > 0) {
           baseCuentasRaw = json;
           columnasCuentas = Object.keys(json[0]);
-          badgeCuentasCargadas.textContent = `${json.length} cuentas`;
           configurarMapeoCuentas();
           procesarCuentas();
         }
@@ -542,20 +559,35 @@
       const gCol = colGestorSel.value;
       const orden = selectOrden.value;
 
-      listaCuentasProcesadas = baseCuentasRaw.map((fila, idx) => {
+      let preCuentas = baseCuentasRaw.map((fila, idx) => {
         const gestorNombreFila = gCol ? String(fila[gCol] || "").trim() : "";
         const gestorObj = buscarDatosGestor(gestorNombreFila);
 
         return {
           id: idx,
           cliente: cCol ? String(fila[cCol] || "").trim().toUpperCase() : `CLIENTE #${idx + 1}`,
-          monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.]/g, "")) || 0) : 0,
+          monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.-]/g, "")) || 0) : 0,
           celular: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : "",
           clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : "",
           gestorNombre: gestorObj.nombre,
           gestorTelefono: gestorObj.telefono
         };
       });
+
+      // FILTRAR LOS QUE NO DEBEN (Monto <= 0)
+      preCuentas = preCuentas.filter(c => c.monto > 0);
+
+      // FILTRAR REPETIDOS POR NOMBRE DE CLIENTE
+      const mapUnicosCuentas = new Map();
+      preCuentas.forEach(c => {
+        const key = c.cliente;
+        if (key && !mapUnicosCuentas.has(key)) {
+          mapUnicosCuentas.set(key, c);
+        }
+      });
+      listaCuentasProcesadas = Array.from(mapUnicosCuentas.values());
+
+      badgeCuentasCargadas.textContent = `${listaCuentasProcesadas.length} cuentas (deudores)`;
 
       if (orden === "monto_desc") listaCuentasProcesadas.sort((a, b) => b.monto - a.monto);
       else if (orden === "monto_asc") listaCuentasProcesadas.sort((a, b) => a.monto - b.monto);
@@ -571,11 +603,11 @@
         c.cliente.toLowerCase().includes(q) || c.celular.includes(q) || c.gestorNombre.toLowerCase().includes(q)
       );
 
-      contadorLista.textContent = `Cuentas (${filtrados.length})`;
+      contadorLista.textContent = `Cuentas a procesar (${filtrados.length})`;
       listaCuentasContainer.innerHTML = "";
 
       if (filtrados.length === 0) {
-        listaCuentasContainer.innerHTML = '<div class="text-center py-8 text-slate-400">Sin coincidencias.</div>';
+        listaCuentasContainer.innerHTML = '<div class="text-center py-8 text-slate-400">Sin coincidencias o todos tienen $0.</div>';
         return;
       }
 
@@ -630,8 +662,7 @@
         await document.fonts.ready;
         const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
         const link = document.createElement("a");
-        const m = Math.round(parseFloat(c.monto) || 0);
-        link.download = `MAXIKASH_${sanitizarNombre(c.cliente)}_$${m}.jpg`;
+        link.download = generarNombreArchivo(c.cliente, c.monto);
         link.href = canvas.toDataURL("image/jpeg", 0.95);
         link.click();
       } catch (err) {
@@ -665,10 +696,8 @@
           const nombreCarpetaGestor = sanitizarNombre(c.gestorNombre) || "SIN_GESTOR_ASIGNADO";
           const carpetaGestor = zip.folder(nombreCarpetaGestor);
           
-          // Nombrar archivo con el cliente y monto
-          const cNombre = sanitizarNombre(c.cliente);
-          const cMonto = Math.round(parseFloat(c.monto) || 0);
-          const nombreArchivo = `MAXIKASH_${cNombre}_$${cMonto}.jpg`;
+          // Nombrar archivo con el cliente y monto (ya sin maxikash y sin $)
+          const nombreArchivo = generarNombreArchivo(c.cliente, c.monto);
           
           // Guardar imagen dentro de la carpeta del gestor correspondiente
           carpetaGestor.file(nombreArchivo, base64, { base64: true });
