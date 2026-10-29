@@ -3,20 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Maxikash - Generador Masivo de Cobranza desde Excel</title>
+  <title>Maxikash - Generador Masivo de Cobranza</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React & ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel para compilar JSX en el navegador -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- SheetJS para leer archivos Excel (.xlsx, .xls, .csv) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <!-- html2canvas para renderizar la imagen en alta definición -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- JSZip para generar el archivo ZIP con todas las imágenes -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- SheetJS, html2canvas, JSZip directamente -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap');
@@ -25,19 +18,239 @@
       text-rendering: geometricPrecision;
     }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    
-    .no-compress {
-        letter-spacing: 0px !important;
-        word-spacing: normal !important;
-    }
+    .no-compress { letter-spacing: 0px !important; word-spacing: normal !important; }
   </style>
 </head>
-<body class="bg-[#E8EEF7] min-h-screen">
-  <div id="root"></div>
+<body class="bg-[#E8EEF7] min-h-screen text-slate-800">
 
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+  <div class="w-full max-w-[1280px] mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <header class="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
+      <div class="flex items-center gap-4">
+        <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain" onerror="this.style.display='none'" />
+        <div>
+          <h1 class="text-xl font-black tracking-tight"> COBRANZA • MÓDULO EXCEL</h1>
+          <p class="text-slate-300 text-xs mt-0.5">Control de Gestores y Emisión Masiva Ultrarrápida</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] px-5 py-2.5 rounded-xl font-bold cursor-pointer text-sm transition-all shadow-md">
+          📁 Cargar Excel (.xlsx / .csv)
+          <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden" />
+        </label>
+      </div>
+    </header>
 
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Columna Izquierda: Controles -->
+      <div class="lg:col-span-5 space-y-4">
+        
+        <!-- Gestor en turno -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <h2 class="text-sm font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
+            <a href=".\directorio.html"></a><span>👔</span> Datos del Gestor en Turno
+          </h2>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1 text-xs">Buscar y Seleccionar Gestor:</label>
+            <input 
+              type="text" 
+              id="buscarGestorInput"
+              placeholder="🔍 Buscar por nombre o teléfono..." 
+              class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-2"
+            />
+            <select 
+              id="selectGestor"
+              class="w-full bg-blue-50 border-2 border-blue-300 p-2.5 rounded-xl font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-2"
+            >
+              <option value="">Cargando gestores...</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-xs opacity-75">
+            <div>
+              <label class="font-bold text-slate-600 block mb-1">Nombre asignado</label>
+              <input type="text" id="nombreGestorTxt" readonly class="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none" />
+            </div>
+            <div>
+              <label class="font-bold text-slate-600 block mb-1">Teléfono asignado</label>
+              <input type="text" id="telGestorTxt" readonly class="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Mapeo de Columnas -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <h2 class="text-sm font-black text-[#0A1931] uppercase tracking-wider">Asignación de Columnas</h2>
+          <div id="contenedorColumnas" class="hidden grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">👤 Nombre Cliente</label>
+              <select id="colNombreSelect" class="w-full bg-amber-50/60 border-2 border-[#C6D82E] p-2 rounded-lg font-bold text-[#0A1931] outline-none"></select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">💰 Monto a Pagar</label>
+              <select id="colMontoSelect" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold outline-none"></select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">📱 Cel. Cliente</label>
+              <select id="colCelularSelect" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold outline-none"></select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">🏦 CLABE / STP</label>
+              <select id="colClabeSelect" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold outline-none"></select>
+            </div>
+          </div>
+          <p id="sinExcelMensaje" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-dashed border-slate-300">
+            Carga un archivo de Excel para mapear datos.
+          </p>
+
+          <div>
+            <label class="font-bold text-xs text-slate-600 block mb-1">Ordenar Lista por:</label>
+            <select id="selectOrden" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-bold text-sm text-[#0A1931] outline-none">
+              <option value="monto_desc">Monto: Mayor a Menor ($$$ &rarr; $)</option>
+              <option value="monto_asc">Monto: Menor a Mayor ($ &rarr; $$$)</option>
+              <option value="nombre_asc">Nombre: Alfabético (A - Z)</option>
+              <option value="nombre_desc">Nombre: Alfabético (Z - A)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Lista de Clientes -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <h3 id="contadorClientes" class="text-xs font-black uppercase tracking-wider text-[#0A1931]">Lista de Clientes (0)</h3>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="buscarClienteInput" placeholder="🔍 Buscar por nombre o celular..." class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] outline-none" />
+          </div>
+          <div id="listaClientesContainer" class="max-h-[280px] overflow-y-auto space-y-2 pr-1 text-xs">
+            <div class="text-center py-8 text-slate-400">No hay clientes cargados.</div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+          <div id="overlayProgreso" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-[#0A1931] rounded-full animate-spin mb-3"></div>
+            <p class="text-[#0A1931] font-black text-sm uppercase tracking-wide">Procesando Lote...</p>
+            <p id="progresoTexto" class="text-[#64748B] font-bold text-xs mt-1">Generando imágenes...</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button id="btnDescargarUno" class="w-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1">
+              <span>📷</span> Descargar Uno
+            </button>
+            <button id="btnDescargarZip" class="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1">
+              <span>🗂️</span> Descargar TODOS (ZIP)
+            </button>
+          </div>
+          <button id="btnWhatsApp" class="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span>💬</span> Abrir Chat con Cliente en WhatsApp
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha: Vista Previa HD -->
+      <div class="lg:col-span-7">
+        <div class="flex justify-between items-center mb-2 px-1">
+          <span class="text-xs font-black text-slate-500 uppercase">Vista Previa HD</span>
+          <div class="flex items-center gap-3">
+            <span id="labelEscala" class="text-xs text-slate-500 font-bold">100%</span>
+            <input type="range" id="sliderEscala" min="0.3" max="1.5" step="0.01" value="1" class="w-24 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#4348EB]" />
+            <button id="btnResetEscala" class="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded text-slate-600 font-bold">100%</button>
+          </div>
+        </div>
+
+        <div id="previewWrapper" class="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
+          <div id="previewSizer" style="width: 1080px; position: relative;">
+            <div id="fichaCobranza" class="shadow-2xl overflow-hidden font-sans rounded-2xl flex flex-col" style="width: 1080px; background-color: #ffffff; transform-origin: top left; position: absolute; top: 0; left: 0;">
+              
+              <!-- Cabecera de la ficha -->
+              <div class="bg-[#4348EB] px-10 pt-10 pb-8">
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center gap-5">
+                    <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 80px; width: auto; object-fit: contain; display: block;" onerror="this.style.display='none'" />
+                    <div class="flex flex-col justify-center">
+                      <div class="text-white font-black leading-none no-compress" style="font-size: 52px;">MAXIKASH</div>
+                      <div class="text-slate-300 font-bold mt-2 no-compress" style="font-size: 18px;">CRÉDITO PARA TU MOTO</div>
+                    </div>
+                  </div>
+                  <div class="bg-[#C6D82E] text-[#0A1931] font-black px-6 py-3 rounded-full no-compress" style="font-size: 20px;">AVISO DE COBRANZA</div>
+                </div>
+                <div class="mt-10">
+                  <div class="text-white font-black leading-tight no-compress" style="font-size: 72px;">PONTE AL<br />CORRIENTE</div>
+                  <div class="text-[#C6D82E] font-black mt-2 no-compress" style="font-size: 36px;">PAGA EL MÍNIMO</div>
+                </div>
+              </div>
+
+              <!-- Cuerpo de la ficha -->
+              <div class="bg-white px-10 py-10 flex-grow">
+                <div id="fechaHoyTxt" class="text-slate-500 font-bold uppercase no-compress" style="font-size: 18px;">FECHA • Mexicali, B.C.</div>
+                
+                <div class="mt-8">
+                  <div class="font-black text-[#0A1931] no-compress" style="font-size: 22px;">ESTIMADO(A):</div>
+                  <div class="mt-3 bg-[#EEF2FF] border-2 border-[#DBEAFE] rounded-xl px-6 py-5">
+                    <div id="cardNombre" class="font-black text-[#0A1931] break-words no-compress" style="font-size: 32px; line-height: 1.2; min-height: 38px;">NOMBRE DEL CLIENTE</div>
+                  </div>
+                </div>
+
+                <div class="mt-8 text-slate-700 font-medium no-compress" style="font-size: 22px; line-height: 1.6;">
+                  Le recordamos que su crédito presenta <strong class="text-[#0A1931] font-bold">atraso en pagos</strong>. Para evitar cargos adicionales y mantener su historial en buen estado, le solicitamos realizar el <strong class="font-bold">pago mínimo indicado</strong> el día de hoy.<br />
+                  <span class="text-[#0A1931] font-bold mt-2 block">Puede pagar por transferencia SPEI a la cuenta STP de abajo.</span>
+                </div>
+
+                <div class="mt-10 bg-[#4348EB] rounded-2xl border-l-[12px] border-l-[#C6D82E] px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
+                  <div class="flex flex-col w-full">
+                    <div class="text-[#C6D82E] font-black uppercase no-compress mb-1" style="font-size: 20px;">MONTO MÍNIMO A PAGAR</div>
+                    <div id="cardMonto" class="text-white font-black leading-none break-words no-compress" style="font-size: 96px;">$0.00</div>
+                    <div style="height: 40px;"></div>
+                    <div id="cardVencimiento" class="text-[#C6D82E] font-bold no-compress" style="font-size: 22px;">MXN • VENCE HOY</div>
+                  </div>
+                  <div class="w-24 h-24 rounded-full bg-[#282C96] border-4 border-[#C6D82E]/30 flex items-center justify-center shrink-0 ml-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-12 h-12 text-[#C6D82E]">
+                      <path fill-rule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="mt-8 bg-[#F7F9E3] border-4 border-[#C6D82E] rounded-2xl px-8 py-6">
+                  <div class="text-[#282C96] font-bold uppercase no-compress" style="font-size: 18px;">CUENTA STP / CLABE • TRANSFERENCIA SPEI</div>
+                  <div id="cardClabe" class="mt-4 mono font-black text-[#0A1931] leading-none break-all no-compress" style="font-size: 38px; min-height: 38px;">CUENTA STP</div>
+                  <div class="mt-3 text-[#4348EB] font-bold no-compress" style="font-size: 16px;">STP - Sistema de Transferencias y Pagos</div>
+                </div>
+
+                <div class="mt-8 bg-[#EEF2FF] border-2 border-[#DBEAFE] rounded-2xl px-8 py-6 flex justify-between items-center">
+                  <div>
+                    <div class="text-[#1E40AF] font-black uppercase no-compress" style="font-size: 18px;">CONTACTO DE SU GESTOR</div>
+                    <div id="cardGestorNombre" class="mt-3 font-bold text-[#0A1931] break-words no-compress" style="font-size: 26px; min-height: 26px;">Gestor: Sin asignar</div>
+                    <div id="cardGestorTel" class="mt-1 font-black text-[#0A1931] no-compress" style="font-size: 28px; min-height: 28px;">Tel: Sin asignar</div>
+                  </div>
+                  <div class="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border-2 border-[#DBEAFE] shadow-sm shrink-0">
+                    <div class="text-4xl mb-1">📞</div>
+                    <div class="text-[12px] font-black text-[#1E40AF]">WHATSAPP</div>
+                  </div>
+                </div>
+
+                <div class="mt-8 flex items-center gap-3 text-slate-500 font-bold no-compress" style="font-size: 16px;">
+                  <span class="w-3 h-3 bg-red-500 rounded-full shrink-0"></span>
+                  Evite visitas domiciliarias y reporte en Buró. Pague hoy mismo.
+                </div>
+              </div>
+
+              <!-- Footer de la ficha -->
+              <div class="bg-[#4348EB] px-10 py-6 flex justify-between items-center">
+                <div class="text-white font-bold no-compress" style="font-size: 20px;">Maxikash - 55 9088 7100 - maxikash.mx</div>
+                <div class="text-[#C6D82E] font-bold uppercase no-compress" style="font-size: 14px;">CONFIDENCIAL</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ESTADO GLOBAL
     const GESTORES_PREDEFINIDOS = [
       { id: "1", nombre: "Lic. Fernando Arenas", telefono: "6861183207" },
       { id: "2", nombre: "Lic. María Guadalupe", telefono: "6861234567" },
@@ -45,737 +258,354 @@
       { id: "4", nombre: "Lic. Ana Victoria", telefono: "6865551122" }
     ];
 
-    function App() {
-      const [filasExcel, setFilasExcel] = useState([]);
-      const [columnasExcel, setColumnasExcel] = useState([]);
-      const [registros, setRegistros] = useState([]);
-      const [indiceActual, setIndiceActual] = useState(0);
+    let listaGestores = [];
+    let gestorActual = null;
+    let filasExcel = [];
+    let columnasExcel = [];
+    let listaClientes = [];
+    let indiceClienteSeleccionado = 0;
+    let escalaActual = 1;
 
-      const [colNombre, setColNombre] = useState("");
-      const [colMonto, setColMonto] = useState("");
-      const [colCelular, setColCelular] = useState("");
-      const [colClabe, setColClabe] = useState("");
+    // ELEMENTOS DOM
+    const previewWrapper = document.getElementById('previewWrapper');
+    const previewSizer = document.getElementById('previewSizer');
+    const ficha = document.getElementById('fichaCobranza');
+    const sliderEscala = document.getElementById('sliderEscala');
+    const labelEscala = document.getElementById('labelEscala');
+    const btnResetEscala = document.getElementById('btnResetEscala');
 
-      const [clienteNombre, setClienteNombre] = useState("");
-      const [monto, setMonto] = useState("");
-      const [celular, setCelular] = useState("");
-      const [clabe, setClabe] = useState("");
-      
-      const [busqueda, setBusqueda] = useState(""); // Buscador de clientes
+    const selectGestor = document.getElementById('selectGestor');
+    const buscarGestorInput = document.getElementById('buscarGestorInput');
+    const nombreGestorTxt = document.getElementById('nombreGestorTxt');
+    const telGestorTxt = document.getElementById('telGestorTxt');
 
-      // GESTORES DINÁMICOS
-      const [listaGestores, setListaGestores] = useState([]);
-      const [gestorSeleccionado, setGestorSeleccionado] = useState("");
-      const [nombreGestor, setNombreGestor] = useState("");
-      const [telGestor, setTelGestor] = useState("");
-      const [busquedaGestor, setBusquedaGestor] = useState(""); // Buscador de gestores
+    const fileInput = document.getElementById('fileInput');
+    const contenedorColumnas = document.getElementById('contenedorColumnas');
+    const sinExcelMensaje = document.getElementById('sinExcelMensaje');
+    const colNombreSelect = document.getElementById('colNombreSelect');
+    const colMontoSelect = document.getElementById('colMontoSelect');
+    const colCelularSelect = document.getElementById('colCelularSelect');
+    const colClabeSelect = document.getElementById('colClabeSelect');
+    const selectOrden = document.getElementById('selectOrden');
 
-      const [generando, setGenerando] = useState(false);
-      const [progresoZip, setProgresoZip] = useState({ actual: 0, total: 0 });
-      
-      const [escala, setEscala] = useState(1);
-      const [criterioOrden, setCriterioOrden] = useState("monto_desc");
-      const [alturaFicha, setAlturaFicha] = useState(1200);
+    const buscarClienteInput = document.getElementById('buscarClienteInput');
+    const contadorClientes = document.getElementById('contadorClientes');
+    const listaClientesContainer = document.getElementById('listaClientesContainer');
 
-      const previewContenedorRef = useRef(null);
-      const fichaRef = useRef(null); 
+    const cardNombre = document.getElementById('cardNombre');
+    const cardMonto = document.getElementById('cardMonto');
+    const cardClabe = document.getElementById('cardClabe');
+    const cardVencimiento = document.getElementById('cardVencimiento');
+    const cardGestorNombre = document.getElementById('cardGestorNombre');
+    const cardGestorTel = document.getElementById('cardGestorTel');
+    const fechaHoyTxt = document.getElementById('fechaHoyTxt');
 
-      useEffect(() => {
-        fetch('gestores.json')
-          .then(res => {
-            if (!res.ok) throw new Error("No existe gestores.json");
-            return res.json();
-          })
-          .then(data => {
-            setListaGestores(data);
-            if (data.length > 0) {
-              setGestorSeleccionado(data[0].id);
-              setNombreGestor(data[0].nombre);
-              setTelGestor(data[0].telefono);
-            }
-          })
-          .catch(err => {
-            console.log("Archivo gestores.json no encontrado, cargando lista por defecto.", err);
-            setListaGestores(GESTORES_PREDEFINIDOS);
-            setGestorSeleccionado(GESTORES_PREDEFINIDOS[0].id);
-            setNombreGestor(GESTORES_PREDEFINIDOS[0].nombre);
-            setTelGestor(GESTORES_PREDEFINIDOS[0].telefono);
-          });
-      }, []);
+    const btnDescargarUno = document.getElementById('btnDescargarUno');
+    const btnDescargarZip = document.getElementById('btnDescargarZip');
+    const btnWhatsApp = document.getElementById('btnWhatsApp');
+    const overlayProgreso = document.getElementById('overlayProgreso');
+    const progresoTexto = document.getElementById('progresoTexto');
 
-      // Filtro de gestores
-      const gestoresFiltrados = listaGestores.filter(g => 
-        g.nombre.toLowerCase().includes(busquedaGestor.toLowerCase()) || 
-        g.telefono.includes(busquedaGestor)
-      );
-
-      // Auto-seleccionar el primero de la lista filtrada si el actual se oculta
-      useEffect(() => {
-        if (gestoresFiltrados.length > 0) {
-          const gestorExiste = gestoresFiltrados.find(g => String(g.id) === String(gestorSeleccionado));
-          if (!gestorExiste) {
-            setGestorSeleccionado(gestoresFiltrados[0].id);
-            setNombreGestor(gestoresFiltrados[0].nombre);
-            setTelGestor(gestoresFiltrados[0].telefono);
-          }
-        } else {
-          setNombreGestor("");
-          setTelGestor("");
-        }
-      }, [gestoresFiltrados, gestorSeleccionado]);
-
-      // Ajuste inicial de la escala
-      useEffect(() => {
-        if (previewContenedorRef.current) {
-          const ancho = previewContenedorRef.current.clientWidth;
-          setEscala(Math.min(1, ancho / 1080));
-        }
-      }, []);
-
-      useEffect(() => {
-        if (!fichaRef.current) return;
-        const observer = new ResizeObserver((entries) => {
-          for (let entry of entries) {
-            setAlturaFicha(entry.contentRect.height);
-          }
-        });
-        observer.observe(fichaRef.current);
-        return () => observer.disconnect();
-      }, [clienteNombre, monto, clabe, nombreGestor, telGestor]);
-
-      const formatearMoneda = (val) => {
-        const num = parseFloat(String(val).replace(/[^0-9.]/g, "")) || 0;
-        return num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      };
-
-      const calcularDiasVencidos = () => {
-        const hoy = new Date();
-        const diaSemana = hoy.getDay(); 
-        const dias = (diaSemana + 6) % 7;
-        return dias === 0 ? "VENCE HOY" : `${dias} DÍAS VENCIDOS`;
-      };
-      const textoVencimiento = calcularDiasVencidos();
-
-      const autoDetectarColumnas = (cols) => {
-        const buscarColumna = (palabras) => cols.find(c => palabras.some(p => c.toLowerCase().includes(p))) || "";
-        const nCol = buscarColumna(["nombre", "cliente", "titular", "deudor"]) || cols[0] || "";
-        const mCol = buscarColumna(["monto", "minimo", "saldo", "pago", "adeudo", "total"]) || (cols[1] || "");
-        const cCol = buscarColumna(["celular", "tel", "telefono", "movil", "whatsapp"]) || (cols[2] || "");
-        const clCol = buscarColumna(["clabe", "cuenta", "stp", "transferencia"]) || (cols[3] || "");
-
-        setColNombre(nCol);
-        setColMonto(mCol);
-        setColCelular(cCol);
-        setColClabe(clCol);
-
-        return { nCol, mCol, cCol, clCol };
-      };
-
-      const handleArchivoExcel = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const hojaNombre = workbook.SheetNames[0];
-          const hoja = workbook.Sheets[hojaNombre];
-          const json = XLSX.utils.sheet_to_json(hoja, { defval: "" });
-
-          if (json.length > 0) {
-            const cols = Object.keys(json[0]);
-            setColumnasExcel(cols);
-            setFilasExcel(json);
-            const detectadas = autoDetectarColumnas(cols);
-            procesarRegistros(json, detectadas.nCol, detectadas.mCol, detectadas.cCol, detectadas.clCol, criterioOrden);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      };
-
-      const procesarRegistros = (filas, nCol, mCol, cCol, clCol, orden) => {
-        if (!filas || filas.length === 0) return;
-        let lista = filas.map((fila, index) => ({
-          id: index,
-          nombre: nCol ? String(fila[nCol] || "").trim().toUpperCase() : `CLIENTE #${index + 1}`,
-          monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.]/g, "")) || 0) : 0,
-          celular: cCol ? String(fila[cCol] || "").replace(/\D/g, "") : "",
-          clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : ""
-        }));
-
-        if (orden === "nombre_asc") lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
-        else if (orden === "nombre_desc") lista.sort((a, b) => b.nombre.localeCompare(a.nombre));
-        else if (orden === "monto_asc") lista.sort((a, b) => a.monto - b.monto);
-        else if (orden === "monto_desc") lista.sort((a, b) => b.monto - a.monto);
-
-        setRegistros(lista);
-        if (lista.length > 0) {
-          seleccionarCliente(lista[0]);
-          setIndiceActual(0);
-        }
-      };
-
-      const seleccionarCliente = (c) => {
-        setClienteNombre(c.nombre || "");
-        setMonto(String(c.monto || ""));
-        setCelular(c.celular || "");
-        setClabe(c.clabe || "");
-      };
-
-      const cambiarOrden = (nuevoOrden) => {
-        setCriterioOrden(nuevoOrden);
-        procesarRegistros(filasExcel, colNombre, colMonto, colCelular, colClabe, nuevoOrden);
-      };
-
-      const handleGestorChange = (e) => {
-        const idGestor = e.target.value;
-        setGestorSeleccionado(idGestor);
-        const gestor = listaGestores.find(g => String(g.id) === String(idGestor));
-        if (gestor) {
-          setNombreGestor(gestor.nombre);
-          setTelGestor(gestor.telefono);
-        }
-      };
-      
-      const registrosFiltrados = registros.filter(r => 
-        r.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-        r.celular.includes(busqueda)
-      );
-      
-      const formatearNombreArchivo = (nombre, montoStr) => {
-        const nombreLimpio = (nombre || "CLIENTE").replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_");
-        return `MAXIKASH_${nombreLimpio}_$${montoStr || "0"}.jpg`;
-      };
-
-      const generarImagenUnica = async () => {
-        if (!fichaRef.current) return;
-        setGenerando(true);
-        
-        try {
-          await document.fonts.ready;
-          
-          const elemento = fichaRef.current;
-          
-          const originalTransform = elemento.style.transform;
-          const originalTransformOrigin = elemento.style.transformOrigin;
-          
-          elemento.style.transform = 'none';
-          elemento.style.transformOrigin = 'unset';
-          
-          await new Promise(r => setTimeout(r, 50));
-          
-          const canvas = await html2canvas(elemento, {
-            scale: 2, 
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            allowTaint: true,
-            logging: false
-          });
-          
-          elemento.style.transform = originalTransform;
-          elemento.style.transformOrigin = originalTransformOrigin;
-
-          const imgData = canvas.toDataURL("image/jpeg", 0.95);
-          const link = document.createElement("a");
-          link.download = formatearNombreArchivo(clienteNombre, monto);
-          link.href = imgData;
-          link.click();
-        } catch (error) {
-          console.error("Error al generar imagen:", error);
-          alert("Hubo un error al generar la imagen. Intenta de nuevo.");
-        } finally {
-          setGenerando(false);
-        }
-      };
-
-      const descargarZip = async () => {
-        if (registrosFiltrados.length === 0) {
-          alert("No hay clientes en la lista para descargar.");
-          return;
-        }
-        if (!window.JSZip) {
-          alert("La librería JSZip no está cargada.");
-          return;
-        }
-
-        setGenerando(true);
-        const zip = new JSZip();
-        const elemento = fichaRef.current;
-        
-        const originalTransform = elemento.style.transform;
-        const originalTransformOrigin = elemento.style.transformOrigin;
-        
-        elemento.style.transform = 'none';
-        elemento.style.transformOrigin = 'unset';
-
-        const clienteOriginal = registrosFiltrados[indiceActual] || registros[0];
-        const indexOriginal = indiceActual;
-
-        try {
-          for (let i = 0; i < registrosFiltrados.length; i++) {
-            const cliente = registrosFiltrados[i];
-            
-            setIndiceActual(i);
-            seleccionarCliente(cliente);
-            setProgresoZip({ actual: i + 1, total: registrosFiltrados.length });
-            
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            const canvas = await html2canvas(elemento, {
-              scale: 2,
-              backgroundColor: "#ffffff",
-              useCORS: true,
-              allowTaint: true,
-              logging: false
-            });
-            
-            const imgData = canvas.toDataURL("image/jpeg", 0.95);
-            const base64Data = imgData.replace(/^data:image\/(png|jpeg);base64,/, "");
-            const fileName = formatearNombreArchivo(cliente.nombre, cliente.monto);
-            
-            zip.file(fileName, base64Data, {base64: true});
-          }
-
-          setProgresoZip({ actual: "Comprimiendo...", total: registrosFiltrados.length });
-          const content = await zip.generateAsync({type:"blob"});
-          const url = window.URL.createObjectURL(content);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = `Maxikash_Cobranza_Lote_${new Date().getTime()}.zip`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-
-        } catch (error) {
-          console.error("Error al generar el ZIP:", error);
-          alert("Hubo un error al procesar las imágenes en bloque.");
-        } finally {
-          elemento.style.transform = originalTransform;
-          elemento.style.transformOrigin = originalTransformOrigin;
-          setIndiceActual(indexOriginal);
-          if(clienteOriginal) seleccionarCliente(clienteOriginal);
-          setProgresoZip({ actual: 0, total: 0 });
-          setGenerando(false);
-        }
-      };
-
-      const enviarWhatsApp = () => {
-        if (!celular) {
-          alert("El cliente actual no tiene un número celular válido asignado.");
-          return;
-        }
-        
-        const texto = encodeURIComponent(
-          `Hola ${clienteNombre || "Cliente"},
-` +
-          `Le compartimos su aviso de pago urgente de Maxikash por $${formatearMoneda(monto)} MXN.
-` +
-          `Puede realizar su transferencia SPEI a su cuenta STP: ${clabe || "Sin Clabe asignada"}. Quedamos a sus órdenes.`
-        );
-        window.open(`https://wa.me/52${celular}?text=${texto}`, "_blank");
-      };
-
-      const fechaHoy = new Date().toLocaleDateString("es-MX", {
-        weekday: "long", year: "numeric", month: "long", day: "numeric"
-      });
-
-      return (
-        <div className="w-full max-w-[1280px] mx-auto p-4 md:p-6">
-          <header className="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
-            <div className="flex items-center gap-4">
-              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style={{ height: "120px", width: "auto", objectFit: "contain", display: "block" }} onError={(e) => e.target.style.display='none'} />
-              <div>
-                <h1 className="text-xl font-black tracking-tight">COBRANZA • MÓDULO EXCEL</h1>
-                <p className="text-slate-400 text-xs mt-0.5">Control de Gestores y Buscadores Integrados</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] px-5 py-2.5 rounded-xl font-bold cursor-pointer text-sm transition-all shadow-md">
-                📁 Cargar Excel (.xlsx / .csv)
-                <input type="file" accept=".xlsx, .xls, .csv" onChange={handleArchivoExcel} className="hidden" />
-              </label>
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5 space-y-4">
-
-              {/* GESTORES BLOQUEADOS (SOLO DEL JSON O FILTRADOS) */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 className="text-sm font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
-                  <a href="./directorio.html"><span>👔</span></a> Datos del Gestor en Turno
-                </h2>
-                
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1 text-xs">Buscar y Seleccionar Gestor:</label>
-                  <input 
-                    type="text" 
-                    placeholder="🔍 Buscar por nombre o teléfono..." 
-                    value={busquedaGestor}
-                    onChange={(e) => setBusquedaGestor(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-2"
-                  />
-                  <select 
-                    value={gestorSeleccionado}
-                    onChange={handleGestorChange}
-                    className="w-full bg-blue-50 border-2 border-blue-300 p-2.5 rounded-xl font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-3"
-                  >
-                    {gestoresFiltrados.length > 0 ? gestoresFiltrados.map(gestor => (
-                      <option key={gestor.id} value={gestor.id}>
-                        {gestor.nombre}
-                      </option>
-                    )) : <option value="">Sin resultados...</option>}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs opacity-75 pointer-events-none">
-                  <div>
-                    <label className="font-bold text-slate-600 block mb-1">Nombre asignado</label>
-                    <input 
-                      type="text"
-                      readOnly
-                      value={nombreGestor}
-                      className="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-600 block mb-1">Teléfono asignado</label>
-                    <input 
-                      type="text"
-                      readOnly
-                      value={telGestor}
-                      className="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Asignación y Selección de Columnas */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-black text-[#0A1931] uppercase tracking-wider">
-                    Asignación de Columnas (Excel)
-                  </h2>
-                </div>
-                
-                {columnasExcel.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">👤 Nombre Cliente</label>
-                      <select value={colNombre} onChange={(e) => { setColNombre(e.target.value); procesarRegistros(filasExcel, e.target.value, colMonto, colCelular, colClabe, criterioOrden); }} className="w-full bg-amber-50/60 border-2 border-[#C6D82E] p-2 rounded-lg font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] outline-none">
-                        <option value="">-- Seleccionar --</option>
-                        {columnasExcel.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">💰 Monto a Pagar</label>
-                      <select value={colMonto} onChange={(e) => { setColMonto(e.target.value); procesarRegistros(filasExcel, colNombre, e.target.value, colCelular, colClabe, criterioOrden); }} className="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold">
-                        <option value="">-- Seleccionar --</option>
-                        {columnasExcel.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">📱 Cel. Cliente (WhatsApp)</label>
-                      <select value={colCelular} onChange={(e) => { setColCelular(e.target.value); procesarRegistros(filasExcel, colNombre, colMonto, e.target.value, colClabe, criterioOrden); }} className="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold">
-                        <option value="">-- Seleccionar --</option>
-                        {columnasExcel.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">🏦 CLABE / STP</label>
-                      <select value={colClabe} onChange={(e) => { setColClabe(e.target.value); procesarRegistros(filasExcel, colNombre, colMonto, colCelular, e.target.value, criterioOrden); }} className="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold">
-                        <option value="">-- Seleccionar --</option>
-                        {columnasExcel.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-dashed border-slate-300">
-                    Carga un archivo de Excel para mapear los datos del cliente.
-                  </p>
-                )}
-
-                {/* Filtro de Orden */}
-                <div>
-                  <label className="font-bold text-xs text-slate-600 block mb-1">Ordenar Lista por:</label>
-                  <select value={criterioOrden} onChange={(e) => cambiarOrden(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-bold text-sm text-[#0A1931]">
-                    <option value="monto_desc">Monto: Mayor a Menor ($$$ &rarr; $)</option>
-                    <option value="monto_asc">Monto: Menor a Mayor ($ &rarr; $$$)</option>
-                    <option value="nombre_asc">Nombre: Alfabético (A - Z)</option>
-                    <option value="nombre_desc">Nombre: Alfabético (Z - A)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Lista Dinámica de Clientes y Buscador */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-[#0A1931]">
-                    Lista de Clientes ({registrosFiltrados.length})
-                  </h3>
-                </div>
-
-                {/* INPUT DE BÚSQUEDA */}
-                <div className="mb-4">
-                  <input 
-                    type="text" 
-                    placeholder="🔍 Buscar por nombre o celular..." 
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] outline-none"
-                  />
-                </div>
-
-                <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
-                  {registrosFiltrados.length > 0 ? (
-                    registrosFiltrados.map((item, idx) => (
-                      <div
-                        key={item.id}
-                        onClick={() => {
-                          if (generando) return;
-                          setIndiceActual(idx);
-                          seleccionarCliente(item);
-                        }}
-                        className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex justify-between items-center ${
-                          indiceActual === idx
-                            ? "bg-[#4348EB] text-white border-[#0A1931] shadow-md ring-2 ring-[#C6D82E]"
-                            : "bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100"
-                        } ${generando ? 'opacity-50 pointer-events-none' : ''}`}
-                      >
-                        <div className="truncate max-w-[210px]">
-                          <p className="font-bold text-sm truncate">
-                            {item.nombre || "(Sin nombre registrado)"}
-                          </p>
-                          <p className={`text-[11px] mt-0.5 font-medium ${indiceActual === idx ? "text-slate-300" : "text-slate-500"}`}>
-                            Celular: {item.celular || "S/N"}
-                          </p>
-                        </div>
-                        <div className="text-right font-black">
-                          <p className={`text-sm ${indiceActual === idx ? "text-[#C6D82E]" : "text-[#0A1931]"}`}>
-                            ${formatearMoneda(item.monto)}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-slate-400 text-xs">
-                      {registros.length === 0 ? "No hay clientes cargados." : "Ningún cliente coincide con tu búsqueda."}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Acciones */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
-                {/* Overlay de Progreso ZIP */}
-                {generando && progresoZip.total > 0 && (
-                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-[#E2E8F0] border-t-[#0A1931] rounded-full animate-spin mb-3"></div>
-                    <p className="text-[#0A1931] font-black text-sm uppercase tracking-wide">Procesando Lote...</p>
-                    <p className="text-[#64748B] font-bold text-xs mt-1">
-                      {progresoZip.actual} / {progresoZip.total} Clientes
-                    </p>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={generarImagenUnica}
-                    disabled={generando}
-                    className="w-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-[0_3px_0_#94A3B8] active:translate-y-0.5 transition-all flex items-center justify-center gap-1"
-                  >
-                    <span>📷</span>
-                    Descargar Uno
-                  </button>
-                  <button
-                    onClick={descargarZip}
-                    disabled={generando}
-                    className="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-[0_3px_0_#0A1931] active:translate-y-0.5 transition-all flex items-center justify-center gap-1"
-                  >
-                    <span>🗂️</span>
-                    {generando ? "GENERANDO..." : "Descargar TODOS (ZIP)"}
-                  </button>
-                </div>
-
-                <button
-                  onClick={enviarWhatsApp}
-                  disabled={generando}
-                  className="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-md active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>💬</span> Abrir Chat con Cliente en WhatsApp
-                </button>
-              </div>
-            </div>
-
-            {/* Vista Previa del Aviso */}
-            <div className="lg:col-span-7">
-              <div className="flex justify-between items-center mb-2 px-1">
-                <span className="text-xs font-black text-slate-500 uppercase">Vista Previa HD</span>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 font-bold">{Math.round(escala * 100)}%</span>
-                  <input 
-                    type="range" 
-                    min="0.3" 
-                    max="1.5" 
-                    step="0.01" 
-                    value={escala} 
-                    onChange={(e) => setEscala(parseFloat(e.target.value))}
-                    className="w-24 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#4348EB]"
-                  />
-                  <button 
-                    onClick={() => setEscala(1)} 
-                    title="Restaurar a 100%"
-                    className="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded text-slate-600 font-bold transition-colors"
-                  >
-                    100%
-                  </button>
-                </div>
-              </div>
-
-              {/* Contenedor responsivo */}
-              <div ref={previewContenedorRef} className="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
-                <div style={{
-                  width: "1080px",
-                  // Altura dinámica que coincide con la tarjeta escalada
-                  height: `${alturaFicha * escala}px`,
-                  position: "relative"
-                }}>
-                  {/* === ESTA ES LA TARJETA VISIBLE Y LA QUE SE CAPTURA === */}
-                  <div 
-                    ref={fichaRef}
-                    id="ficha-visible"
-                    className="shadow-2xl overflow-hidden font-sans rounded-2xl flex flex-col"
-                    style={{ 
-                      width: "1080px", 
-                      backgroundColor: "#ffffff",
-                      transform: `scale(${escala})`, 
-                      transformOrigin: "top left",
-                      position: "absolute",
-                      top: 0,
-                      left: 0
-                    }}
-                  >
-                    <div className="bg-[#4348EB] px-10 pt-10 pb-8">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-5">
-                          <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style={{ height: "120px", width: "auto", objectFit: "contain", display: "block" }} onError={(e) => e.target.style.display='none'} />
-                          <div className="flex flex-col justify-center">
-                            <div className="text-white font-black leading-none no-compress" style={{ fontSize: "52px" }}>MAXIKASH</div>
-                            <div className="text-slate-400 font-bold mt-2 no-compress" style={{ fontSize: "18px" }}>
-                              CRÉDITO PARA TU MOTO
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-[#C6D82E] text-[#0A1931] font-black px-6 py-3 rounded-full no-compress" style={{ fontSize: "20px" }}>
-                          AVISO DE COBRANZA
-                        </div>
-                      </div>
-                      <div className="mt-10">
-                        <div className="text-white font-black leading-tight no-compress" style={{ fontSize: "72px" }}>
-                          PONTE AL<br />CORRIENTE
-                        </div>
-                        <div className="text-[#C6D82E] font-black mt-2 no-compress" style={{ fontSize: "36px" }}>
-                          PAGA EL MÍNIMO
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white px-10 py-10 flex-grow">
-                      <div className="text-slate-500 font-bold uppercase no-compress" style={{ fontSize: "18px" }}>
-                        {fechaHoy} • Mexicali, B.C.
-                      </div>
-
-                      <div className="mt-8">
-                        <div className="font-black text-[#0A1931] no-compress" style={{ fontSize: "22px" }}>ESTIMADO(A):</div>
-                        <div className="mt-3 bg-[#EEF2FF] border-2 border-[#DBEAFE] rounded-xl px-6 py-5">
-                          <div className="font-black text-[#0A1931] break-words no-compress" style={{ fontSize: "32px", lineHeight: "1.2", minHeight: "38px" }}>
-                            {clienteNombre || "NOMBRE DEL CLIENTE"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-8 text-slate-700 font-medium no-compress" style={{ fontSize: "22px", lineHeight: "1.6" }}>
-                        Le recordamos que su crédito presenta <strong className="text-[#0A1931] font-bold">atraso en pagos</strong>. Para evitar cargos adicionales y mantener su historial en buen estado, le solicitamos realizar el <strong className="font-bold">pago mínimo indicado</strong> el día de hoy.<br />
-                        <span className="text-[#0A1931] font-bold mt-2 block">Puede pagar por transferencia SPEI a la cuenta STP de abajo.</span>
-                      </div>
-
-                      <div className="mt-10 bg-[#4348EB] rounded-2xl border-l-[12px] border-l-[#C6D82E] px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
-                        <div className="flex flex-col w-full">
-                          <div className="text-[#C6D82E] font-black uppercase no-compress mb-1" style={{ fontSize: "20px" }}>
-                            MONTO MÍNIMO A PAGAR
-                          </div>
-                          <div className="text-white font-black leading-none break-words no-compress" style={{ fontSize: "96px" }}>
-                            ${formatearMoneda(monto)}
-                          </div>
-                          
-                          <div style={{ height: "40px" }}></div>
-                          
-                          <div className="text-[#C6D82E] font-bold no-compress" style={{ fontSize: "22px" }}>
-                            MXN • {textoVencimiento}
-                          </div>
-                        </div>
-                        <div className="w-24 h-24 rounded-full bg-[#282C96] border-4 border-[#C6D82E]/30 flex items-center justify-center shrink-0 ml-4">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-[#C6D82E]">
-                            <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      </div>
-
-                      <div className="mt-8 bg-[#F7F9E3] border-4 border-[#C6D82E] rounded-2xl px-8 py-6">
-                        <div className="flex justify-between items-start">
-                          <div className="text-[#282C96] font-bold uppercase no-compress" style={{ fontSize: "18px" }}>
-                            CUENTA STP / CLABE • TRANSFERENCIA SPEI
-                          </div>
-                        </div>
-                        <div className="mt-4 mono font-black text-[#0A1931] leading-none break-all no-compress" style={{ fontSize: "38px", minHeight: "38px" }}>
-                          {clabe.match(/.{1,4}/g)?.join(" ") || clabe || "CUENTA STP"}
-                        </div>
-                        <div className="mt-3 text-[#4348EB] font-bold no-compress" style={{ fontSize: "16px" }}>
-                          STP - Sistema de Transferencias y Pagos
-                        </div>
-                      </div>
-
-                      <div className="mt-8 bg-[#EEF2FF] border-2 border-[#DBEAFE] rounded-2xl px-8 py-6 flex justify-between items-center">
-                        <div>
-                          <div className="text-[#1E40AF] font-black uppercase no-compress" style={{ fontSize: "18px" }}>
-                            CONTACTO DE SU GESTOR
-                          </div>
-                          <div className="mt-3 font-bold text-[#0A1931] break-words no-compress" style={{ fontSize: "26px", minHeight: "26px" }}>
-                            Gestor: {nombreGestor || "Sin asignar"}
-                          </div>
-                          <div className="mt-1 font-black text-[#0A1931] no-compress" style={{ fontSize: "28px", minHeight: "28px" }}>
-                            Tel: {telGestor || "Sin asignar"}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border-2 border-[#DBEAFE] shadow-sm shrink-0">
-                          <div className="text-4xl mb-1">📞</div>
-                          <div className="text-[12px] font-black text-[#1E40AF]">WHATSAPP</div>
-                        </div>
-                      </div>
-
-                      <div className="mt-8 flex items-center gap-3 text-slate-500 font-bold no-compress" style={{ fontSize: "16px" }}>
-                        <span className="w-3 h-3 bg-red-500 rounded-full shrink-0"></span>
-                        Evite visitas domiciliarias y reporte en Buró. Pague hoy mismo.
-                      </div>
-                    </div>
-
-                    <div className="bg-[#4348EB] px-10 py-6 flex justify-between items-center">
-                      <div className="text-white font-bold no-compress" style={{ fontSize: "20px" }}>
-                        Maxikash - 55 9088 7100 - maxikash.mx
-                      </div>
-                      <div className="text-[#C6D82E] font-bold uppercase no-compress" style={{ fontSize: "14px" }}>
-                        CONFIDENCIAL
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+    // FORMATEADORES
+    function formatearMoneda(val) {
+      const num = parseFloat(String(val).replace(/[^0-9.]/g, "")) || 0;
+      return num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    function calcularDiasVencidos() {
+      const hoy = new Date();
+      const diaSemana = hoy.getDay(); 
+      const dias = (diaSemana + 6) % 7;
+      return dias === 0 ? "VENCE HOY" : `${dias} DÍAS VENCIDOS`;
+    }
+
+    function formatearNombreArchivo(nombre, montoStr) {
+      const n = (nombre || "CLIENTE").replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_");
+      return `MAXIKASH_${n}_$${montoStr || "0"}.jpg`;
+    }
+
+    // AJUSTE DE ESCALA RESPONSIVA
+    function ajustarEscala(auto = true) {
+      if (auto && previewWrapper) {
+        const anchoDisponible = previewWrapper.clientWidth - 32;
+        escalaActual = Math.min(1, Math.max(0.28, anchoDisponible / 1080));
+        sliderEscala.value = escalaActual;
+      }
+      ficha.style.transform = `scale(${escalaActual})`;
+      const alto = ficha.offsetHeight || 1200;
+      previewSizer.style.height = `${alto * escalaActual}px`;
+      labelEscala.textContent = `${Math.round(escalaActual * 100)}%`;
+    }
+
+    window.addEventListener('resize', () => ajustarEscala(true));
+    sliderEscala.addEventListener('input', (e) => {
+      escalaActual = parseFloat(e.target.value);
+      ajustarEscala(false);
+    });
+    btnResetEscala.addEventListener('click', () => {
+      escalaActual = 1;
+      sliderEscala.value = 1;
+      ajustarEscala(false);
+    });
+
+    // INICIALIZACIÓN DE FECHAS
+    const hoyStr = new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    fechaHoyTxt.textContent = `${hoyStr} • Mexicali, B.C.`;
+    cardVencimiento.textContent = `MXN • ${calcularDiasVencidos()}`;
+
+    // CARGAR GESTORES
+    fetch('gestores.json?nocache=' + Date.now())
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        listaGestores = Array.isArray(data) && data.length > 0 ? data : GESTORES_PREDEFINIDOS;
+        poblarSelectGestores();
+      })
+      .catch(() => {
+        listaGestores = GESTORES_PREDEFINIDOS;
+        poblarSelectGestores();
+      });
+
+    function poblarSelectGestores() {
+      const busq = (buscarGestorInput.value || "").toLowerCase();
+      const filtrados = listaGestores.filter(g => (g.nombre || "").toLowerCase().includes(busq) || (g.telefono || "").includes(busq));
+      
+      selectGestor.innerHTML = "";
+      if (filtrados.length === 0) {
+        selectGestor.innerHTML = '<option value="">Sin resultados</option>';
+        gestorActual = null;
+        actualizarDatosGestor();
+        return;
+      }
+
+      filtrados.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = `${g.nombre} (${g.telefono})`;
+        selectGestor.appendChild(opt);
+      });
+
+      gestorActual = filtrados[0];
+      actualizarDatosGestor();
+    }
+
+    function actualizarDatosGestor() {
+      if (gestorActual) {
+        nombreGestorTxt.value = gestorActual.nombre;
+        telGestorTxt.value = gestorActual.telefono;
+        cardGestorNombre.textContent = `Gestor: ${gestorActual.nombre}`;
+        cardGestorTel.textContent = `Tel: ${gestorActual.telefono}`;
+      } else {
+        nombreGestorTxt.value = "";
+        telGestorTxt.value = "";
+        cardGestorNombre.textContent = "Gestor: Sin asignar";
+        cardGestorTel.textContent = "Tel: Sin asignar";
+      }
+    }
+
+    selectGestor.addEventListener('change', (e) => {
+      gestorActual = listaGestores.find(g => String(g.id) === String(e.target.value)) || null;
+      actualizarDatosGestor();
+    });
+
+    buscarGestorInput.addEventListener('input', poblarSelectGestores);
+
+    // PROCESAMIENTO DE EXCEL
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        if (json.length > 0) {
+          filasExcel = json;
+          columnasExcel = Object.keys(json[0]);
+          mostrarMapeoColumnas();
+          procesarFilas();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function mostrarMapeoColumnas() {
+      sinExcelMensaje.classList.add('hidden');
+      contenedorColumnas.classList.remove('hidden');
+
+      const llenar = (sel, defTerms, defaultIdx) => {
+        sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+        let autoMatch = "";
+        columnasExcel.forEach(col => {
+          const opt = document.createElement('option');
+          opt.value = col;
+          opt.textContent = col;
+          if (!autoMatch && defTerms.some(t => col.toLowerCase().includes(t))) autoMatch = col;
+          sel.appendChild(opt);
+        });
+        sel.value = autoMatch || columnasExcel[defaultIdx] || "";
+      };
+
+      llenar(colNombreSelect, ["nombre", "cliente", "titular", "deudor"], 0);
+      llenar(colMontoSelect, ["monto", "minimo", "saldo", "pago", "adeudo", "total"], 1);
+      llenar(colCelularSelect, ["celular", "tel", "telefono", "movil", "whatsapp"], 2);
+      llenar(colClabeSelect, ["clabe", "cuenta", "stp", "transferencia"], 3);
+    }
+
+    [colNombreSelect, colMontoSelect, colCelularSelect, colClabeSelect, selectOrden].forEach(sel => {
+      sel.addEventListener('change', procesarFilas);
+    });
+
+    function procesarFilas() {
+      if (filasExcel.length === 0) return;
+      const nCol = colNombreSelect.value;
+      const mCol = colMontoSelect.value;
+      const cCol = colCelularSelect.value;
+      const clCol = colClabeSelect.value;
+      const orden = selectOrden.value;
+
+      listaClientes = filasExcel.map((fila, idx) => ({
+        id: idx,
+        nombre: nCol ? String(fila[nCol] || "").trim().toUpperCase() : `CLIENTE #${idx + 1}`,
+        monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.]/g, "")) || 0) : 0,
+        celular: cCol ? String(fila[cCol] || "").replace(/\D/g, "") : "",
+        clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : ""
+      }));
+
+      if (orden === "nombre_asc") listaClientes.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      else if (orden === "nombre_desc") listaClientes.sort((a, b) => b.nombre.localeCompare(a.nombre));
+      else if (orden === "monto_asc") listaClientes.sort((a, b) => a.monto - b.monto);
+      else if (orden === "monto_desc") listaClientes.sort((a, b) => b.monto - a.monto);
+
+      renderizarListaClientes();
+      if (listaClientes.length > 0) {
+        seleccionarCliente(0);
+      }
+    }
+
+    function renderizarListaClientes() {
+      const busq = (buscarClienteInput.value || "").toLowerCase();
+      const filtrados = listaClientes.filter(c => c.nombre.toLowerCase().includes(busq) || c.celular.includes(busq));
+      
+      contadorClientes.textContent = `Lista de Clientes (${filtrados.length})`;
+      listaClientesContainer.innerHTML = "";
+
+      if (filtrados.length === 0) {
+        listaClientesContainer.innerHTML = '<div class="text-center py-8 text-slate-400">Sin coincidencias.</div>';
+        return;
+      }
+
+      filtrados.forEach((cliente, idx) => {
+        const item = document.createElement('div');
+        const activo = (idx === indiceClienteSeleccionado);
+        item.className = `p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
+          activo ? 'bg-[#4348EB] text-white border-[#0A1931] shadow-md ring-2 ring-[#C6D82E]' : 'bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100'
+        }`;
+        
+        item.innerHTML = `
+          <div class="truncate max-w-[210px]">
+            <p class="font-bold text-sm truncate">${cliente.nombre}</p>
+            <p class="text-[11px] mt-0.5 ${activo ? 'text-slate-300' : 'text-slate-500'}">Cel: ${cliente.celular || 'S/N'}</p>
+          </div>
+          <div class="text-right font-black">
+            <p class="text-sm ${activo ? 'text-[#C6D82E]' : 'text-[#0A1931]'}">$${formatearMoneda(cliente.monto)}</p>
+          </div>
+        `;
+        item.onclick = () => {
+          indiceClienteSeleccionado = idx;
+          seleccionarCliente(idx, filtrados);
+          renderizarListaClientes();
+        };
+        listaClientesContainer.appendChild(item);
+      });
+    }
+
+    buscarClienteInput.addEventListener('input', renderizarListaClientes);
+
+    function seleccionarCliente(idx, lista = listaClientes) {
+      const c = lista[idx];
+      if (!c) return;
+      cardNombre.textContent = c.nombre || "NOMBRE DEL CLIENTE";
+      cardMonto.textContent = `$${formatearMoneda(c.monto)}`;
+      cardClabe.textContent = c.clabe.match(/.{1,4}/g)?.join(" ") || c.clabe || "CUENTA STP";
+      ajustarEscala(false);
+    }
+
+    // DESCARGA INDIVIDUAL (IMAGEN)
+    btnDescargarUno.addEventListener('click', async () => {
+      if (!window.html2canvas) return alert("Cargando componentes, espera un segundo...");
+      const c = listaClientes[indiceClienteSeleccionado];
+      const origTrans = ficha.style.transform;
+      ficha.style.transform = "none";
+
+      try {
+        await document.fonts.ready;
+        const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
+        const link = document.createElement("a");
+        link.download = formatearNombreArchivo(c?.nombre, c?.monto);
+        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.click();
+      } catch (err) {
+        alert("Error al generar la imagen.");
+      } finally {
+        ficha.style.transform = origTrans;
+      }
+    });
+
+    // DESCARGA MASIVA (ZIP)
+    btnDescargarZip.addEventListener('click', async () => {
+      if (listaClientes.length === 0) return alert("No hay clientes cargados.");
+      if (!window.JSZip || !window.html2canvas) return alert("Cargando componentes...");
+
+      overlayProgreso.classList.remove('hidden');
+      const zip = new JSZip();
+      const origTrans = ficha.style.transform;
+      ficha.style.transform = "none";
+
+      try {
+        for (let i = 0; i < listaClientes.length; i++) {
+          const c = listaClientes[i];
+          seleccionarCliente(i);
+          progresoTexto.textContent = `Generando imagen ${i + 1} de ${listaClientes.length}...`;
+          await new Promise(r => setTimeout(r, 60));
+          const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
+          const base64 = canvas.toDataURL("image/jpeg", 0.92).replace(/^data:image\/jpeg;base64,/, "");
+          zip.file(formatearNombreArchivo(c.nombre, c.monto), base64, { base64: true });
+        }
+
+        progresoTexto.textContent = "Comprimiendo archivo ZIP...";
+        const blob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Maxikash_Cobranza_${Date.now()}.zip`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert("Error al procesar el lote.");
+      } finally {
+        ficha.style.transform = origTrans;
+        overlayProgreso.classList.add('hidden');
+        if (listaClientes[indiceClienteSeleccionado]) {
+          seleccionarCliente(indiceClienteSeleccionado);
+        }
+      }
+    });
+
+    // WHATSAPP
+    btnWhatsApp.addEventListener('click', () => {
+      const c = listaClientes[indiceClienteSeleccionado];
+      if (!c || !c.celular) return alert("El cliente no tiene celular registrado.");
+      const msg = encodeURIComponent(
+        `Hola ${c.nombre},\n` +
+        `Le compartimos su aviso de pago urgente de Maxikash por $${formatearMoneda(c.monto)} MXN.\n` +
+        `Puede realizar su transferencia SPEI a su cuenta STP: ${c.clabe || "Sin Clabe asignada"}. Quedamos a sus órdenes.`
+      );
+      window.open(`https://wa.me/52${c.celular}?text=${msg}`, "_blank");
+    });
+
+    // Ajuste inicial al cargar
+    setTimeout(() => ajustarEscala(true), 200);
   </script>
 </body>
 </html>
