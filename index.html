@@ -23,127 +23,161 @@
 </head>
 <body class="bg-[#E8EEF7] min-h-screen text-slate-800">
 
-  <div class="w-full max-w-[1280px] mx-auto p-4 md:p-6">
-    <!-- Header -->
+  <div class="w-full max-w-[1360px] mx-auto p-4 md:p-6">
+    <!-- Header Principal -->
     <header class="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
       <div class="flex items-center gap-4">
-        <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain" onerror="this.style.display='none'" />
+        <!-- Logo Header web -->
+        <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain block" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
         <div>
-          <h1 class="text-xl font-black tracking-tight"> COBRANZA • MÓDULO EXCEL</h1>
-          <p class="text-slate-300 text-xs mt-0.5">Control de Gestores y Emisión Masiva Ultrarrápida</p>
+          <h1 class="text-xl font-black tracking-tight">MAXIKASH COBRANZA • EMISIÓN MASIVA</h1>
+          <p class="text-slate-300 text-xs mt-0.5">1. Excel Gestores &rarr; 2. Excel Cuentas &rarr; 3. Exportación Masiva</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <label class="bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] px-5 py-2.5 rounded-xl font-bold cursor-pointer text-sm transition-all shadow-md">
-          📁 Cargar Excel (.xlsx / .csv)
-          <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden" />
-        </label>
+        <a href="directorio.html" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border border-white/20">
+          📖 Directorio
+        </a>
+        <a href="gestores.html" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border border-white/20">
+          👔 Admin Gestores
+        </a>
       </div>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
       <!-- Columna Izquierda: Controles -->
       <div class="lg:col-span-5 space-y-4">
         
-        <!-- Gestor en turno -->
+        <!-- PASO 1: CARGAR BASE DE GESTORES DESDE EXCEL -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <h2 class="text-sm font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
-            <a href=".\directorio.html"></a><span>👔</span> Datos del Gestor en Turno
-          </h2>
-          <div>
-            <label class="font-bold text-slate-700 block mb-1 text-xs">Buscar y Seleccionar Gestor:</label>
-            <input 
-              type="text" 
-              id="buscarGestorInput"
-              placeholder="🔍 Buscar por nombre o teléfono..." 
-              class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-2"
-            />
-            <select 
-              id="selectGestor"
-              class="w-full bg-blue-50 border-2 border-blue-300 p-2.5 rounded-xl font-bold text-[#0A1931] focus:ring-2 focus:ring-blue-400 outline-none mb-2"
-            >
-              <option value="">Cargando gestores...</option>
-            </select>
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-[#4348EB] text-white flex items-center justify-center text-[10px]">1</span>
+              Base de Gestores (Excel)
+            </h2>
+            <span id="badgeGestoresCargados" class="bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-slate-200">
+              0 gestores
+            </span>
           </div>
-          <div class="grid grid-cols-2 gap-3 text-xs opacity-75">
-            <div>
-              <label class="font-bold text-slate-600 block mb-1">Nombre asignado</label>
-              <input type="text" id="nombreGestorTxt" readonly class="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none" />
-            </div>
-            <div>
-              <label class="font-bold text-slate-600 block mb-1">Teléfono asignado</label>
-              <input type="text" id="telGestorTxt" readonly class="w-full bg-slate-100 border border-slate-200 p-2.5 rounded-lg font-bold text-slate-600 outline-none" />
-            </div>
-          </div>
-        </div>
 
-        <!-- Mapeo de Columnas -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <h2 class="text-sm font-black text-[#0A1931] uppercase tracking-wider">Asignación de Columnas</h2>
-          <div id="contenedorColumnas" class="hidden grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label class="font-bold text-slate-700 block mb-1">👤 Nombre Cliente</label>
-              <select id="colNombreSelect" class="w-full bg-amber-50/60 border-2 border-[#C6D82E] p-2 rounded-lg font-bold text-[#0A1931] outline-none"></select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700 block mb-1">💰 Monto a Pagar</label>
-              <select id="colMontoSelect" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold outline-none"></select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700 block mb-1">📱 Cel. Cliente</label>
-              <select id="colCelularSelect" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold outline-none"></select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700 block mb-1">🏦 CLABE / STP</label>
-              <select id="colClabeSelect" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg font-semibold outline-none"></select>
+          <label class="w-full bg-slate-100 hover:bg-slate-200 text-[#0A1931] border-2 border-dashed border-slate-300 hover:border-[#4348EB] py-3 px-4 rounded-xl font-bold cursor-pointer text-xs transition-all text-center block">
+            📂 Cargar Excel de Gestores (.xlsx / .csv)
+            <input type="file" id="fileGestoresInput" accept=".xlsx, .xls, .csv" class="hidden" />
+          </label>
+
+          <div id="contenedorMapeoGestores" class="hidden space-y-2 pt-2 border-t border-slate-100">
+            <p class="text-[11px] font-black text-slate-600 uppercase">Columnas del Excel de Gestores:</p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">👤 Nombre Gestor</label>
+                <select id="colGestorNombreSel" class="w-full bg-blue-50/70 border border-blue-200 p-1.5 rounded-lg font-bold text-[#0A1931] text-xs outline-none"></select>
+              </div>
+              <div>
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">📱 Teléfono / Celular</label>
+                <select id="colGestorTelSel" class="w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg font-semibold text-xs outline-none"></select>
+              </div>
             </div>
           </div>
-          <p id="sinExcelMensaje" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-dashed border-slate-300">
-            Carga un archivo de Excel para mapear datos.
-          </p>
 
-          <div>
-            <label class="font-bold text-xs text-slate-600 block mb-1">Ordenar Lista por:</label>
-            <select id="selectOrden" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-bold text-sm text-[#0A1931] outline-none">
-              <option value="monto_desc">Monto: Mayor a Menor ($$$ &rarr; $)</option>
-              <option value="monto_asc">Monto: Menor a Mayor ($ &rarr; $$$)</option>
-              <option value="nombre_asc">Nombre: Alfabético (A - Z)</option>
-              <option value="nombre_desc">Nombre: Alfabético (Z - A)</option>
+          <div class="pt-2 border-t border-slate-100">
+            <label class="font-bold text-slate-600 block mb-1 text-[11px]">Gestor en Turno / Por Defecto:</label>
+            <select id="selectGestorDefault" class="w-full bg-slate-50 border border-slate-200 p-2 rounded-xl font-bold text-xs text-[#0A1931] outline-none">
+              <option value="">Carga el Excel de Gestores primero</option>
             </select>
           </div>
         </div>
 
-        <!-- Lista de Clientes -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-3">
-            <h3 id="contadorClientes" class="text-xs font-black uppercase tracking-wider text-[#0A1931]">Lista de Clientes (0)</h3>
+        <!-- PASO 2: CARGAR BASE DE CUENTAS DESDE EXCEL -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-[#4348EB] text-white flex items-center justify-center text-[10px]">2</span>
+              Base de Cuentas (Excel)
+            </h2>
+            <span id="badgeCuentasCargadas" class="bg-amber-50 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-amber-200">
+              0 cuentas
+            </span>
           </div>
-          <div class="mb-3">
-            <input type="text" id="buscarClienteInput" placeholder="🔍 Buscar por nombre o celular..." class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold text-[#0A1931] focus:ring-2 focus:ring-[#C6D82E] outline-none" />
-          </div>
-          <div id="listaClientesContainer" class="max-h-[280px] overflow-y-auto space-y-2 pr-1 text-xs">
-            <div class="text-center py-8 text-slate-400">No hay clientes cargados.</div>
+
+          <label class="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] py-3 px-4 rounded-xl font-black cursor-pointer text-xs transition-all shadow-md text-center block">
+            📁 Cargar Excel de Cuentas (.xlsx / .csv)
+            <input type="file" id="fileCuentasInput" accept=".xlsx, .xls, .csv" class="hidden" />
+          </label>
+
+          <div id="contenedorMapeoCuentas" class="hidden space-y-2 pt-2 border-t border-slate-100">
+            <p class="text-[11px] font-black text-slate-600 uppercase">Columnas detectadas en Cuentas:</p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">👤 Cliente</label>
+                <select id="colClienteSel" class="w-full bg-amber-50/70 border border-[#C6D82E] p-1.5 rounded-lg font-bold text-[#0A1931] text-xs outline-none"></select>
+              </div>
+              <div>
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">💰 Monto Mínimo</label>
+                <select id="colMontoSel" class="w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg font-semibold text-xs outline-none"></select>
+              </div>
+              <div>
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">📱 Tel. Cliente</label>
+                <select id="colCelularSel" class="w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg font-semibold text-xs outline-none"></select>
+              </div>
+              <div>
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">🏦 CLABE / STP</label>
+                <select id="colClabeSel" class="w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg font-semibold text-xs outline-none"></select>
+              </div>
+              <div class="col-span-2">
+                <label class="font-bold text-slate-600 block mb-0.5 text-[10px]">👔 Columna Gestor Asignado (Opcional):</label>
+                <select id="colGestorSel" class="w-full bg-blue-50/60 border border-blue-200 p-1.5 rounded-lg font-bold text-[#4348EB] text-xs outline-none">
+                  <option value="">-- Usar Gestor por Defecto --</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Botones de Acción -->
+        <!-- LISTA Y BÚSQUEDA DE CUENTAS -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 id="contadorLista" class="text-xs font-black uppercase tracking-wider text-[#0A1931]">Cuentas (0)</h3>
+            <select id="selectOrden" class="text-xs bg-slate-100 border border-slate-200 p-1.5 rounded-lg font-bold text-slate-700 outline-none">
+              <option value="monto_desc">Monto: $$$ &rarr; $</option>
+              <option value="monto_asc">Monto: $ &rarr; $$$</option>
+              <option value="nombre_asc">Nombre (A - Z)</option>
+            </select>
+          </div>
+
+          <input type="text" id="buscarCuentaInput" placeholder="🔍 Buscar por cliente, gestor o celular..." class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-bold text-[#0A1931] outline-none focus:ring-2 focus:ring-[#4348EB]" />
+
+          <div id="listaCuentasContainer" class="max-h-[220px] overflow-y-auto space-y-2 pr-1 text-xs">
+            <div class="text-center py-8 text-slate-400">Carga el Excel de cuentas para visualizarlas aquí.</div>
+          </div>
+        </div>
+
+        <!-- PASO 3: BOTONES DE EXPORTACIÓN -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
           <div id="overlayProgreso" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
             <div class="w-10 h-10 border-4 border-slate-200 border-t-[#0A1931] rounded-full animate-spin mb-3"></div>
-            <p class="text-[#0A1931] font-black text-sm uppercase tracking-wide">Procesando Lote...</p>
-            <p id="progresoTexto" class="text-[#64748B] font-bold text-xs mt-1">Generando imágenes...</p>
+            <p class="text-[#0A1931] font-black text-sm uppercase tracking-wide">Generando Lote Masivo...</p>
+            <p id="progresoTexto" class="text-slate-500 font-bold text-xs mt-1">Procesando imágenes...</p>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-[#4348EB] text-white flex items-center justify-center text-[10px]">3</span>
+              Exportación (Gestor + Cliente)
+            </h2>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <button id="btnDescargarUno" class="w-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1">
-              <span>📷</span> Descargar Uno
+            <button id="btnDescargarUno" class="w-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+              <span>📷</span> Descargar Uno (JPG)
             </button>
-            <button id="btnDescargarZip" class="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1">
-              <span>🗂️</span> Descargar TODOS (ZIP)
+            <button id="btnDescargarZip" class="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+              <span>🗂️</span> Descargar TODO (ZIP)
             </button>
           </div>
-          <button id="btnWhatsApp" class="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
-            <span>💬</span> Abrir Chat con Cliente en WhatsApp
+
+          <button id="btnWhatsApp" class="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span>💬</span> Abrir WhatsApp del Cliente
           </button>
         </div>
 
@@ -152,7 +186,7 @@
       <!-- Columna Derecha: Vista Previa HD -->
       <div class="lg:col-span-7">
         <div class="flex justify-between items-center mb-2 px-1">
-          <span class="text-xs font-black text-slate-500 uppercase">Vista Previa HD</span>
+          <span class="text-xs font-black text-slate-500 uppercase">Vista Previa Ficha HD (1080px)</span>
           <div class="flex items-center gap-3">
             <span id="labelEscala" class="text-xs text-slate-500 font-bold">100%</span>
             <input type="range" id="sliderEscala" min="0.3" max="1.5" step="0.01" value="1" class="w-24 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#4348EB]" />
@@ -162,9 +196,11 @@
 
         <div id="previewWrapper" class="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
           <div id="previewSizer" style="width: 1080px; position: relative;">
+            
+            <!-- EL CONTENEDOR QUE SE EXPORTA A IMAGEN -->
             <div id="fichaCobranza" class="shadow-2xl overflow-hidden font-sans rounded-2xl flex flex-col" style="width: 1080px; background-color: #ffffff; transform-origin: top left; position: absolute; top: 0; left: 0;">
               
-              <!-- Cabecera de la ficha -->
+              <!-- Cabecera de la ficha (RESTAURADA ETIQUETA IMG ORIGINAL QUE SÍ DESCARGABA) -->
               <div class="bg-[#4348EB] px-10 pt-10 pb-8">
                 <div class="flex justify-between items-start">
                   <div class="flex items-center gap-5">
@@ -250,47 +286,49 @@
   </div>
 
   <script>
-    // ESTADO GLOBAL
-    const GESTORES_PREDEFINIDOS = [
-      { id: "1", nombre: "Lic. Fernando Arenas", telefono: "6861183207" },
-      { id: "2", nombre: "Lic. María Guadalupe", telefono: "6861234567" },
-      { id: "3", nombre: "Lic. Carlos Ruiz", telefono: "6869876543" },
-      { id: "4", nombre: "Lic. Ana Victoria", telefono: "6865551122" }
-    ];
+    // ESTADO PRINCIPAL (SIN JSON EXTERNO)
+    let baseGestoresRaw = [];
+    let columnasGestores = [];
+    let listaGestoresProcesados = [];
+    let gestorPorDefecto = null;
 
-    let listaGestores = [];
-    let gestorActual = null;
-    let filasExcel = [];
-    let columnasExcel = [];
-    let listaClientes = [];
-    let indiceClienteSeleccionado = 0;
+    let baseCuentasRaw = [];
+    let columnasCuentas = [];
+    let listaCuentasProcesadas = [];
+    let indiceSeleccionado = 0;
     let escalaActual = 1;
 
-    // ELEMENTOS DOM
+    // ELEMENTOS DEL PASO 1 (GESTORES DESDE EXCEL)
+    const fileGestoresInput = document.getElementById('fileGestoresInput');
+    const badgeGestoresCargados = document.getElementById('badgeGestoresCargados');
+    const contenedorMapeoGestores = document.getElementById('contenedorMapeoGestores');
+    const colGestorNombreSel = document.getElementById('colGestorNombreSel');
+    const colGestorTelSel = document.getElementById('colGestorTelSel');
+    const selectGestorDefault = document.getElementById('selectGestorDefault');
+
+    // ELEMENTOS DEL PASO 2 (CUENTAS DESDE EXCEL)
+    const fileCuentasInput = document.getElementById('fileCuentasInput');
+    const badgeCuentasCargadas = document.getElementById('badgeCuentasCargadas');
+    const contenedorMapeoCuentas = document.getElementById('contenedorMapeoCuentas');
+    const colClienteSel = document.getElementById('colClienteSel');
+    const colMontoSel = document.getElementById('colMontoSel');
+    const colCelularSel = document.getElementById('colCelularSel');
+    const colClabeSel = document.getElementById('colClabeSel');
+    const colGestorSel = document.getElementById('colGestorSel');
+
+    // ELEMENTOS LISTA
+    const contadorLista = document.getElementById('contadorLista');
+    const buscarCuentaInput = document.getElementById('buscarCuentaInput');
+    const selectOrden = document.getElementById('selectOrden');
+    const listaCuentasContainer = document.getElementById('listaCuentasContainer');
+
+    // ELEMENTOS FICHA
     const previewWrapper = document.getElementById('previewWrapper');
     const previewSizer = document.getElementById('previewSizer');
     const ficha = document.getElementById('fichaCobranza');
     const sliderEscala = document.getElementById('sliderEscala');
     const labelEscala = document.getElementById('labelEscala');
     const btnResetEscala = document.getElementById('btnResetEscala');
-
-    const selectGestor = document.getElementById('selectGestor');
-    const buscarGestorInput = document.getElementById('buscarGestorInput');
-    const nombreGestorTxt = document.getElementById('nombreGestorTxt');
-    const telGestorTxt = document.getElementById('telGestorTxt');
-
-    const fileInput = document.getElementById('fileInput');
-    const contenedorColumnas = document.getElementById('contenedorColumnas');
-    const sinExcelMensaje = document.getElementById('sinExcelMensaje');
-    const colNombreSelect = document.getElementById('colNombreSelect');
-    const colMontoSelect = document.getElementById('colMontoSelect');
-    const colCelularSelect = document.getElementById('colCelularSelect');
-    const colClabeSelect = document.getElementById('colClabeSelect');
-    const selectOrden = document.getElementById('selectOrden');
-
-    const buscarClienteInput = document.getElementById('buscarClienteInput');
-    const contadorClientes = document.getElementById('contadorClientes');
-    const listaClientesContainer = document.getElementById('listaClientesContainer');
 
     const cardNombre = document.getElementById('cardNombre');
     const cardMonto = document.getElementById('cardMonto');
@@ -300,13 +338,22 @@
     const cardGestorTel = document.getElementById('cardGestorTel');
     const fechaHoyTxt = document.getElementById('fechaHoyTxt');
 
+    // ELEMENTOS PASO 3
     const btnDescargarUno = document.getElementById('btnDescargarUno');
     const btnDescargarZip = document.getElementById('btnDescargarZip');
     const btnWhatsApp = document.getElementById('btnWhatsApp');
     const overlayProgreso = document.getElementById('overlayProgreso');
     const progresoTexto = document.getElementById('progresoTexto');
 
-    // FORMATEADORES
+    // FUNCIONES DE FORMATEO
+    function sanitizarNombre(txt) {
+      return (txt || "SIN_NOMBRE")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_|_$/g, "");
+    }
+
     function formatearMoneda(val) {
       const num = parseFloat(String(val).replace(/[^0-9.]/g, "")) || 0;
       return num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -319,16 +366,18 @@
       return dias === 0 ? "VENCE HOY" : `${dias} DÍAS VENCIDOS`;
     }
 
-    function formatearNombreArchivo(nombre, montoStr) {
-      const n = (nombre || "CLIENTE").replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_");
-      return `MAXIKASH_${n}_$${montoStr || "0"}.jpg`;
+    function generarNombreArchivo(gestor, cliente, monto) {
+      const g = sanitizarNombre(gestor);
+      const c = sanitizarNombre(cliente);
+      const m = Math.round(parseFloat(monto) || 0);
+      return `MAXIKASH_${g}_${c}_$${m}.jpg`;
     }
 
-    // AJUSTE DE ESCALA RESPONSIVA
+    // RESPONSIVE PREVIEW
     function ajustarEscala(auto = true) {
       if (auto && previewWrapper) {
-        const anchoDisponible = previewWrapper.clientWidth - 32;
-        escalaActual = Math.min(1, Math.max(0.28, anchoDisponible / 1080));
+        const anchoDisp = previewWrapper.clientWidth - 32;
+        escalaActual = Math.min(1, Math.max(0.28, anchoDisp / 1080));
         sliderEscala.value = escalaActual;
       }
       ficha.style.transform = `scale(${escalaActual})`;
@@ -336,7 +385,6 @@
       previewSizer.style.height = `${alto * escalaActual}px`;
       labelEscala.textContent = `${Math.round(escalaActual * 100)}%`;
     }
-
     window.addEventListener('resize', () => ajustarEscala(true));
     sliderEscala.addEventListener('input', (e) => {
       escalaActual = parseFloat(e.target.value);
@@ -348,193 +396,256 @@
       ajustarEscala(false);
     });
 
-    // INICIALIZACIÓN DE FECHAS
     const hoyStr = new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
     fechaHoyTxt.textContent = `${hoyStr} • Mexicali, B.C.`;
     cardVencimiento.textContent = `MXN • ${calcularDiasVencidos()}`;
 
-    // CARGAR GESTORES
-    fetch('gestores.json?nocache=' + Date.now())
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        listaGestores = Array.isArray(data) && data.length > 0 ? data : GESTORES_PREDEFINIDOS;
-        poblarSelectGestores();
-      })
-      .catch(() => {
-        listaGestores = GESTORES_PREDEFINIDOS;
-        poblarSelectGestores();
-      });
-
-    function poblarSelectGestores() {
-      const busq = (buscarGestorInput.value || "").toLowerCase();
-      const filtrados = listaGestores.filter(g => (g.nombre || "").toLowerCase().includes(busq) || (g.telefono || "").includes(busq));
-      
-      selectGestor.innerHTML = "";
-      if (filtrados.length === 0) {
-        selectGestor.innerHTML = '<option value="">Sin resultados</option>';
-        gestorActual = null;
-        actualizarDatosGestor();
-        return;
-      }
-
-      filtrados.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.id;
-        opt.textContent = `${g.nombre} (${g.telefono})`;
-        selectGestor.appendChild(opt);
-      });
-
-      gestorActual = filtrados[0];
-      actualizarDatosGestor();
-    }
-
-    function actualizarDatosGestor() {
-      if (gestorActual) {
-        nombreGestorTxt.value = gestorActual.nombre;
-        telGestorTxt.value = gestorActual.telefono;
-        cardGestorNombre.textContent = `Gestor: ${gestorActual.nombre}`;
-        cardGestorTel.textContent = `Tel: ${gestorActual.telefono}`;
-      } else {
-        nombreGestorTxt.value = "";
-        telGestorTxt.value = "";
-        cardGestorNombre.textContent = "Gestor: Sin asignar";
-        cardGestorTel.textContent = "Tel: Sin asignar";
-      }
-    }
-
-    selectGestor.addEventListener('change', (e) => {
-      gestorActual = listaGestores.find(g => String(g.id) === String(e.target.value)) || null;
-      actualizarDatosGestor();
-    });
-
-    buscarGestorInput.addEventListener('input', poblarSelectGestores);
-
-    // PROCESAMIENTO DE EXCEL
-    fileInput.addEventListener('change', (e) => {
+    // 1. CARGA DE GESTORES SOLO DESDE EXCEL
+    fileGestoresInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (evt) => {
         const data = new Uint8Array(evt.target.result);
         const wb = XLSX.read(data, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
         if (json.length > 0) {
-          filasExcel = json;
-          columnasExcel = Object.keys(json[0]);
-          mostrarMapeoColumnas();
-          procesarFilas();
+          baseGestoresRaw = json;
+          columnasGestores = Object.keys(json[0]);
+          badgeGestoresCargados.textContent = `${json.length} gestores`;
+          configurarMapeoGestores();
+          procesarListaGestores();
         }
       };
       reader.readAsArrayBuffer(file);
     });
 
-    function mostrarMapeoColumnas() {
-      sinExcelMensaje.classList.add('hidden');
-      contenedorColumnas.classList.remove('hidden');
+    function configurarMapeoGestores() {
+      contenedorMapeoGestores.classList.remove('hidden');
 
       const llenar = (sel, defTerms, defaultIdx) => {
         sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-        let autoMatch = "";
-        columnasExcel.forEach(col => {
+        let match = "";
+        columnasGestores.forEach(col => {
           const opt = document.createElement('option');
           opt.value = col;
           opt.textContent = col;
-          if (!autoMatch && defTerms.some(t => col.toLowerCase().includes(t))) autoMatch = col;
+          if (!match && defTerms.some(t => col.toLowerCase().includes(t))) match = col;
           sel.appendChild(opt);
         });
-        sel.value = autoMatch || columnasExcel[defaultIdx] || "";
+        sel.value = match || columnasGestores[defaultIdx] || "";
       };
 
-      llenar(colNombreSelect, ["nombre", "cliente", "titular", "deudor"], 0);
-      llenar(colMontoSelect, ["monto", "minimo", "saldo", "pago", "adeudo", "total"], 1);
-      llenar(colCelularSelect, ["celular", "tel", "telefono", "movil", "whatsapp"], 2);
-      llenar(colClabeSelect, ["clabe", "cuenta", "stp", "transferencia"], 3);
+      llenar(colGestorNombreSel, ["nombre", "gestor", "asesor", "lic", "cobrador"], 0);
+      llenar(colGestorTelSel, ["tel", "cel", "telefono", "movil", "whatsapp"], 1);
     }
 
-    [colNombreSelect, colMontoSelect, colCelularSelect, colClabeSelect, selectOrden].forEach(sel => {
-      sel.addEventListener('change', procesarFilas);
+    [colGestorNombreSel, colGestorTelSel].forEach(s => {
+      s.addEventListener('change', procesarListaGestores);
     });
 
-    function procesarFilas() {
-      if (filasExcel.length === 0) return;
-      const nCol = colNombreSelect.value;
-      const mCol = colMontoSelect.value;
-      const cCol = colCelularSelect.value;
-      const clCol = colClabeSelect.value;
-      const orden = selectOrden.value;
+    function procesarListaGestores() {
+      if (baseGestoresRaw.length === 0) return;
+      const nCol = colGestorNombreSel.value;
+      const tCol = colGestorTelSel.value;
 
-      listaClientes = filasExcel.map((fila, idx) => ({
-        id: idx,
-        nombre: nCol ? String(fila[nCol] || "").trim().toUpperCase() : `CLIENTE #${idx + 1}`,
-        monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.]/g, "")) || 0) : 0,
-        celular: cCol ? String(fila[cCol] || "").replace(/\D/g, "") : "",
-        clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : ""
+      listaGestoresProcesados = baseGestoresRaw.map((fila, idx) => ({
+        id: String(idx + 1),
+        nombre: nCol ? String(fila[nCol] || "").trim() : `Gestor ${idx + 1}`,
+        telefono: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : ""
       }));
 
-      if (orden === "nombre_asc") listaClientes.sort((a, b) => a.nombre.localeCompare(b.nombre));
-      else if (orden === "nombre_desc") listaClientes.sort((a, b) => b.nombre.localeCompare(a.nombre));
-      else if (orden === "monto_asc") listaClientes.sort((a, b) => a.monto - b.monto);
-      else if (orden === "monto_desc") listaClientes.sort((a, b) => b.monto - a.monto);
+      selectGestorDefault.innerHTML = "";
+      listaGestoresProcesados.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.nombre;
+        opt.textContent = `${g.nombre} (${g.telefono || 'Sin tel'})`;
+        selectGestorDefault.appendChild(opt);
+      });
 
-      renderizarListaClientes();
-      if (listaClientes.length > 0) {
-        seleccionarCliente(0);
+      gestorPorDefecto = listaGestoresProcesados[0] || null;
+      if (gestorPorDefecto) {
+        selectGestorDefault.value = gestorPorDefecto.nombre;
+        cardGestorNombre.textContent = `Gestor: ${gestorPorDefecto.nombre}`;
+        cardGestorTel.textContent = `Tel: ${gestorPorDefecto.telefono}`;
+      }
+
+      if (baseCuentasRaw.length > 0) procesarCuentas();
+    }
+
+    selectGestorDefault.addEventListener('change', (e) => {
+      gestorPorDefecto = listaGestoresProcesados.find(g => g.nombre === e.target.value) || null;
+      if (gestorPorDefecto) {
+        cardGestorNombre.textContent = `Gestor: ${gestorPorDefecto.nombre}`;
+        cardGestorTel.textContent = `Tel: ${gestorPorDefecto.telefono}`;
+      }
+      if (baseCuentasRaw.length > 0) procesarCuentas();
+    });
+
+    // 2. CARGA DE CUENTAS SOLO DESDE EXCEL
+    fileCuentasInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+        if (json.length > 0) {
+          baseCuentasRaw = json;
+          columnasCuentas = Object.keys(json[0]);
+          badgeCuentasCargadas.textContent = `${json.length} cuentas`;
+          configurarMapeoCuentas();
+          procesarCuentas();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function configurarMapeoCuentas() {
+      contenedorMapeoCuentas.classList.remove('hidden');
+
+      const llenar = (sel, defTerms, defaultIdx) => {
+        sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+        let match = "";
+        columnasCuentas.forEach(col => {
+          const opt = document.createElement('option');
+          opt.value = col;
+          opt.textContent = col;
+          if (!match && defTerms.some(t => col.toLowerCase().includes(t))) match = col;
+          sel.appendChild(opt);
+        });
+        sel.value = match || columnasCuentas[defaultIdx] || "";
+      };
+
+      llenar(colClienteSel, ["nombre", "cliente", "titular", "deudor"], 0);
+      llenar(colMontoSel, ["monto", "minimo", "saldo", "pago", "adeudo", "total"], 1);
+      llenar(colCelularSel, ["celular", "tel", "telefono", "movil", "whatsapp"], 2);
+      llenar(colClabeSel, ["clabe", "cuenta", "stp", "transferencia"], 3);
+
+      colGestorSel.innerHTML = '<option value="">-- Usar Gestor por Defecto --</option>';
+      let gMatch = "";
+      columnasCuentas.forEach(col => {
+        const opt = document.createElement('option');
+        opt.value = col;
+        opt.textContent = `Columna: ${col}`;
+        if (!gMatch && /gestor|asesor|cobrador|asignado/i.test(col)) gMatch = col;
+        colGestorSel.appendChild(opt);
+      });
+      colGestorSel.value = gMatch || "";
+    }
+
+    [colClienteSel, colMontoSel, colCelularSel, colClabeSel, colGestorSel, selectOrden].forEach(s => {
+      s.addEventListener('change', procesarCuentas);
+    });
+
+    function buscarDatosGestor(nombreBuscado) {
+      if (!nombreBuscado && gestorPorDefecto) return gestorPorDefecto;
+      const nb = (nombreBuscado || "").toLowerCase().trim();
+      const encontrado = listaGestoresProcesados.find(g => {
+        const gNom = (g.nombre || "").toLowerCase();
+        return gNom.includes(nb) || nb.includes(gNom);
+      });
+      return encontrado || gestorPorDefecto || { nombre: nombreBuscado || "Lic. MaxiKash", telefono: "6861183207" };
+    }
+
+    function procesarCuentas() {
+      if (baseCuentasRaw.length === 0) return;
+
+      const cCol = colClienteSel.value;
+      const mCol = colMontoSel.value;
+      const tCol = colCelularSel.value;
+      const clCol = colClabeSel.value;
+      const gCol = colGestorSel.value;
+      const orden = selectOrden.value;
+
+      listaCuentasProcesadas = baseCuentasRaw.map((fila, idx) => {
+        const gestorNombreFila = gCol ? String(fila[gCol] || "").trim() : "";
+        const gestorObj = buscarDatosGestor(gestorNombreFila);
+
+        return {
+          id: idx,
+          cliente: cCol ? String(fila[cCol] || "").trim().toUpperCase() : `CLIENTE #${idx + 1}`,
+          monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.]/g, "")) || 0) : 0,
+          celular: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : "",
+          clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : "",
+          gestorNombre: gestorObj.nombre,
+          gestorTelefono: gestorObj.telefono
+        };
+      });
+
+      if (orden === "monto_desc") listaCuentasProcesadas.sort((a, b) => b.monto - a.monto);
+      else if (orden === "monto_asc") listaCuentasProcesadas.sort((a, b) => a.monto - b.monto);
+      else if (orden === "nombre_asc") listaCuentasProcesadas.sort((a, b) => a.cliente.localeCompare(b.cliente));
+
+      renderizarListaCuentas();
+      if (listaCuentasProcesadas.length > 0) {
+        seleccionarCuenta(0);
       }
     }
 
-    function renderizarListaClientes() {
-      const busq = (buscarClienteInput.value || "").toLowerCase();
-      const filtrados = listaClientes.filter(c => c.nombre.toLowerCase().includes(busq) || c.celular.includes(busq));
-      
-      contadorClientes.textContent = `Lista de Clientes (${filtrados.length})`;
-      listaClientesContainer.innerHTML = "";
+    function renderizarListaCuentas() {
+      const q = (buscarCuentaInput.value || "").toLowerCase();
+      const filtrados = listaCuentasProcesadas.filter(c => 
+        c.cliente.toLowerCase().includes(q) || 
+        c.celular.includes(q) ||
+        c.gestorNombre.toLowerCase().includes(q)
+      );
+
+      contadorLista.textContent = `Cuentas (${filtrados.length})`;
+      listaCuentasContainer.innerHTML = "";
 
       if (filtrados.length === 0) {
-        listaClientesContainer.innerHTML = '<div class="text-center py-8 text-slate-400">Sin coincidencias.</div>';
+        listaCuentasContainer.innerHTML = '<div class="text-center py-8 text-slate-400">Sin coincidencias.</div>';
         return;
       }
 
-      filtrados.forEach((cliente, idx) => {
-        const item = document.createElement('div');
-        const activo = (idx === indiceClienteSeleccionado);
-        item.className = `p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
+      filtrados.forEach((item, idx) => {
+        const div = document.createElement('div');
+        const activo = (idx === indiceSeleccionado);
+        div.className = `p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
           activo ? 'bg-[#4348EB] text-white border-[#0A1931] shadow-md ring-2 ring-[#C6D82E]' : 'bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100'
         }`;
         
-        item.innerHTML = `
+        div.innerHTML = `
           <div class="truncate max-w-[210px]">
-            <p class="font-bold text-sm truncate">${cliente.nombre}</p>
-            <p class="text-[11px] mt-0.5 ${activo ? 'text-slate-300' : 'text-slate-500'}">Cel: ${cliente.celular || 'S/N'}</p>
+            <p class="font-bold text-xs truncate">${item.cliente}</p>
+            <p class="text-[10px] mt-0.5 ${activo ? 'text-slate-300' : 'text-slate-500'}">👔 ${item.gestorNombre}</p>
           </div>
           <div class="text-right font-black">
-            <p class="text-sm ${activo ? 'text-[#C6D82E]' : 'text-[#0A1931]'}">$${formatearMoneda(cliente.monto)}</p>
+            <p class="text-xs ${activo ? 'text-[#C6D82E]' : 'text-[#0A1931]'}">$${formatearMoneda(item.monto)}</p>
           </div>
         `;
-        item.onclick = () => {
-          indiceClienteSeleccionado = idx;
-          seleccionarCliente(idx, filtrados);
-          renderizarListaClientes();
+
+        div.onclick = () => {
+          indiceSeleccionado = idx;
+          seleccionarCuenta(idx, filtrados);
+          renderizarListaCuentas();
         };
-        listaClientesContainer.appendChild(item);
+
+        listaCuentasContainer.appendChild(div);
       });
     }
 
-    buscarClienteInput.addEventListener('input', renderizarListaClientes);
+    buscarCuentaInput.addEventListener('input', renderizarListaCuentas);
 
-    function seleccionarCliente(idx, lista = listaClientes) {
+    function seleccionarCuenta(idx, lista = listaCuentasProcesadas) {
       const c = lista[idx];
       if (!c) return;
-      cardNombre.textContent = c.nombre || "NOMBRE DEL CLIENTE";
+      cardNombre.textContent = c.cliente || "NOMBRE DEL CLIENTE";
       cardMonto.textContent = `$${formatearMoneda(c.monto)}`;
       cardClabe.textContent = c.clabe.match(/.{1,4}/g)?.join(" ") || c.clabe || "CUENTA STP";
+      cardGestorNombre.textContent = `Gestor: ${c.gestorNombre}`;
+      cardGestorTel.textContent = `Tel: ${c.gestorTelefono}`;
       ajustarEscala(false);
     }
 
-    // DESCARGA INDIVIDUAL (IMAGEN)
+    // 3. EXPORTACIÓN INDIVIDUAL (JPG)
     btnDescargarUno.addEventListener('click', async () => {
-      if (!window.html2canvas) return alert("Cargando componentes, espera un segundo...");
-      const c = listaClientes[indiceClienteSeleccionado];
+      if (!window.html2canvas) return alert("Cargando componentes...");
+      const c = listaCuentasProcesadas[indiceSeleccionado];
+      if (!c) return alert("Selecciona o carga una cuenta.");
+
       const origTrans = ficha.style.transform;
       ficha.style.transform = "none";
 
@@ -542,19 +653,19 @@
         await document.fonts.ready;
         const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
         const link = document.createElement("a");
-        link.download = formatearNombreArchivo(c?.nombre, c?.monto);
+        link.download = generarNombreArchivo(c.gestorNombre, c.cliente, c.monto);
         link.href = canvas.toDataURL("image/jpeg", 0.95);
         link.click();
       } catch (err) {
-        alert("Error al generar la imagen.");
+        alert("Error al exportar imagen individual.");
       } finally {
         ficha.style.transform = origTrans;
       }
     });
 
-    // DESCARGA MASIVA (ZIP)
+    // 3. EXPORTACIÓN ZIP (GESTOR + CLIENTE)
     btnDescargarZip.addEventListener('click', async () => {
-      if (listaClientes.length === 0) return alert("No hay clientes cargados.");
+      if (listaCuentasProcesadas.length === 0) return alert("No hay cuentas cargadas para exportar.");
       if (!window.JSZip || !window.html2canvas) return alert("Cargando componentes...");
 
       overlayProgreso.classList.remove('hidden');
@@ -563,14 +674,16 @@
       ficha.style.transform = "none";
 
       try {
-        for (let i = 0; i < listaClientes.length; i++) {
-          const c = listaClientes[i];
-          seleccionarCliente(i);
-          progresoTexto.textContent = `Generando imagen ${i + 1} de ${listaClientes.length}...`;
+        for (let i = 0; i < listaCuentasProcesadas.length; i++) {
+          const c = listaCuentasProcesadas[i];
+          seleccionarCuenta(i);
+          progresoTexto.textContent = `Generando imagen ${i + 1} de ${listaCuentasProcesadas.length}... (${c.cliente})`;
           await new Promise(r => setTimeout(r, 60));
           const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
           const base64 = canvas.toDataURL("image/jpeg", 0.92).replace(/^data:image\/jpeg;base64,/, "");
-          zip.file(formatearNombreArchivo(c.nombre, c.monto), base64, { base64: true });
+          
+          const nombreArchivo = generarNombreArchivo(c.gestorNombre, c.cliente, c.monto);
+          zip.file(nombreArchivo, base64, { base64: true });
         }
 
         progresoTexto.textContent = "Comprimiendo archivo ZIP...";
@@ -578,33 +691,34 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `Maxikash_Cobranza_${Date.now()}.zip`;
+        link.download = `MAXIKASH_COBRANZA_LOTE_${Date.now()}.zip`;
         link.click();
         URL.revokeObjectURL(url);
       } catch (err) {
-        alert("Error al procesar el lote.");
+        alert("Error al generar el ZIP masivo.");
       } finally {
         ficha.style.transform = origTrans;
         overlayProgreso.classList.add('hidden');
-        if (listaClientes[indiceClienteSeleccionado]) {
-          seleccionarCliente(indiceClienteSeleccionado);
+        if (listaCuentasProcesadas[indiceSeleccionado]) {
+          seleccionarCuenta(indiceSeleccionado);
         }
       }
     });
 
     // WHATSAPP
     btnWhatsApp.addEventListener('click', () => {
-      const c = listaClientes[indiceClienteSeleccionado];
-      if (!c || !c.celular) return alert("El cliente no tiene celular registrado.");
+      const c = listaCuentasProcesadas[indiceSeleccionado];
+      if (!c || !c.celular) return alert("Esta cuenta no tiene celular asignado.");
       const msg = encodeURIComponent(
-        `Hola ${c.nombre},\n` +
-        `Le compartimos su aviso de pago urgente de Maxikash por $${formatearMoneda(c.monto)} MXN.\n` +
-        `Puede realizar su transferencia SPEI a su cuenta STP: ${c.clabe || "Sin Clabe asignada"}. Quedamos a sus órdenes.`
+        `Hola ${c.cliente},
+` +
+        `Le recordamos su aviso de pago urgente de Maxikash por $${formatearMoneda(c.monto)} MXN.
+` +
+        `Transferencia SPEI a su cuenta STP: ${c.clabe || "Sin Clabe"}. Atiende: ${c.gestorNombre} (Tel: ${c.gestorTelefono}).`
       );
       window.open(`https://wa.me/52${c.celular}?text=${msg}`, "_blank");
     });
 
-    // Ajuste inicial al cargar
     setTimeout(() => ajustarEscala(true), 200);
   </script>
 </body>
