@@ -30,7 +30,7 @@
         <!-- Logo Header web -->
         <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain block" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
         <div>
-          <h1 class="text-xl font-black tracking-tight">MAXIKASH COBRANZA • EMISIÓN MASIVA</h1>
+          <h1 class="text-xl font-black tracking-tight">COBRANZA • EMISIÓN MASIVA</h1>
           <p class="text-slate-300 text-xs mt-0.5">1. Excel Gestores &rarr; 2. Excel Cuentas &rarr; 3. Exportación Masiva</p>
         </div>
       </div>
@@ -425,15 +425,18 @@
       contenedorMapeoGestores.classList.remove('hidden');
       const llenar = (sel, defTerms, defaultIdx) => {
         sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-        let match = "";
         columnasGestores.forEach(col => {
           const opt = document.createElement('option');
           opt.value = col;
           opt.textContent = col;
-          if (!match && defTerms.some(t => col.toLowerCase().includes(t))) match = col;
           sel.appendChild(opt);
         });
-        sel.value = match || columnasGestores[defaultIdx] || "";
+        let match = "";
+        for (const term of defTerms) {
+          const found = columnasGestores.find(c => c.toLowerCase().includes(term));
+          if (found) { match = found; break; }
+        }
+        sel.value = match || (defaultIdx >= 0 ? columnasGestores[defaultIdx] : "");
       };
       llenar(colGestorNombreSel, ["nombre", "gestor", "asesor", "lic", "cobrador"], 0);
       llenar(colGestorTelSel, ["tel", "cel", "telefono", "movil", "whatsapp"], 1);
@@ -515,19 +518,22 @@
       contenedorMapeoCuentas.classList.remove('hidden');
       const llenar = (sel, defTerms, defaultIdx) => {
         sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-        let match = "";
         columnasCuentas.forEach(col => {
           const opt = document.createElement('option');
           opt.value = col;
           opt.textContent = col;
-          if (!match && defTerms.some(t => col.toLowerCase().includes(t))) match = col;
           sel.appendChild(opt);
         });
-        sel.value = match || columnasCuentas[defaultIdx] || "";
+        let match = "";
+        for (const term of defTerms) {
+          const found = columnasCuentas.find(c => c.toLowerCase().includes(term));
+          if (found) { match = found; break; }
+        }
+        sel.value = match || (defaultIdx >= 0 ? columnasCuentas[defaultIdx] : "");
       };
 
       llenar(colClienteSel, ["nombre", "cliente", "titular", "deudor"], 0);
-      llenar(colMontoSel, ["saldo", "cuota", "monto", "total", "adeudo", "minimo", "pago"], 1);
+      llenar(colMontoSel, ["saldo", "monto", "cuota", "total", "adeudo", "minimo", "pago"], 1);
       llenar(colCelularSel, ["celular", "tel", "telefono", "movil", "whatsapp"], 2);
       llenar(colClabeSel, ["clabe", "cuenta", "stp", "transferencia"], 3);
 
@@ -732,7 +738,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `LOTE_AVISOS_${Date.now()}.zip`;
+        link.download = `MAXIKASH_LOTE_POR_GESTORES_${Date.now()}.zip`;
         link.click();
         URL.revokeObjectURL(url);
       } catch (err) {
