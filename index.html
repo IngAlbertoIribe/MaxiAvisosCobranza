@@ -395,76 +395,76 @@
       
       // Procesar titulo1 separando cualquier variante de <br> en líneas individuales
       const lineasTitulo1 = (conf.titulo1 || '').split(/<br\s*\/?>/i);
-      const htmlTitulo1 = lineasTitulo1.map(l => `<div style="font-size: 80px; line-height: 88px; font-weight: 900; letter-spacing: -2px;">\${l}</div>`).join('<div style="height: 12px;"></div>');
+      const htmlTitulo1 = lineasTitulo1.map(l => `<div style="font-size: 80px; line-height: 88px; font-weight: 900; letter-spacing: -2px;">${l}</div>`).join('<div style="height: 12px;"></div>');
 
       let html = '';
       
       html += `
         <!-- Cabecera -->
-        \${conf.cintaPeligo ? \`<div style="\${cintaStyle}" class="w-full"></div>\` : ''}
-        <div class="\${conf.colorFondo} px-10 pt-10 pb-10 relative">
-          \${(conf.tipo === 'critica' || conf.tipo === 'media') ? \`
-            <div class="absolute top-4 left-10 text-6xl drop-shadow-lg">\${conf.tipo === 'critica' ? '🚨' : '⚠️'}</div>
-            <div class="absolute top-4 right-10 text-6xl drop-shadow-lg">\${conf.tipo === 'critica' ? '🚨' : '⚠️'}</div>
+        ${conf.cintaPeligo ? \`<div style="${cintaStyle}" class="w-full"></div>\` : ''}
+        <div class="${conf.colorFondo} px-10 pt-10 pb-10 relative">
+          ${(conf.tipo === 'critica' || conf.tipo === 'media') ? \`
+            <div class="absolute top-4 left-10 text-6xl drop-shadow-lg">${conf.tipo === 'critica' ? '🚨' : '⚠️'}</div>
+            <div class="absolute top-4 right-10 text-6xl drop-shadow-lg">${conf.tipo === 'critica' ? '🚨' : '⚠️'}</div>
           \` : ''}
           
           <!-- Fila de Logo y Óvalo con altura fija para alineación exacta -->
-          <div class="flex justify-between items-start \${(conf.tipo === 'critica' || conf.tipo === 'media') ? 'mt-16' : ''}" style="min-height: 185px;">
+          <div class="flex justify-between items-start ${(conf.tipo === 'critica' || conf.tipo === 'media') ? 'mt-16' : ''}" style="min-height: 185px;">
             <div class="flex flex-col items-center md:items-start gap-1">
               <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 145px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
-              <div class="\${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
+              <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
             </div>
             
-            \${conf.tag ? \`
+            ${conf.tag ? \`
             <div style="padding-top: 55px; text-align: right;">
-              <div class="font-black no-compress" style="background-color: \${diaIdx === '3' ? '#ffffff' : '#FFD700'}; color: \${diaIdx === '3' ? '#3b82f6' : '#000000'}; font-size: 20px; line-height: 1; white-space: nowrap; padding: 12px 24px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); -webkit-mask-image: -webkit-radial-gradient(white, black);">
-                \${conf.tag}
+              <div class="font-black no-compress" style="background-color: ${diaIdx === '3' ? '#ffffff' : '#FFD700'}; color: ${diaIdx === '3' ? '#3b82f6' : '#000000'}; font-size: 20px; line-height: 1; white-space: nowrap; padding: 12px 24px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); -webkit-mask-image: -webkit-radial-gradient(white, black);">
+                ${conf.tag}
               </div>
             </div>\` : ''}
           </div>
 
           <!-- Bloque de Títulos con estructura vertical rígida -->
           <div style="margin-top: 35px; width: 100%; text-align: center;">
-            <div class="\${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full">
-              \${htmlTitulo1}
+            <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full">
+              ${htmlTitulo1}
             </div>
             
             <!-- Separación fija e inquebrantable para html2canvas -->
             <div style="height: 35px; width: 100%;"></div>
             
             <div style="width: 100%; text-align: center;">
-              <div class="\${conf.colorSub} font-black no-compress uppercase" style="background-color: #3135B3; border-radius: 12px; display: inline-block; width: 100%; padding: 12px 24px; font-size: 36px; line-height: 44px; box-sizing: border-box; overflow: hidden; -webkit-mask-image: -webkit-radial-gradient(white, black);">
-                \${conf.titulo2}
+              <div class="${conf.colorSub} font-black no-compress uppercase" style="background-color: #3135B3; border-radius: 12px; display: inline-block; width: 100%; padding: 12px 24px; font-size: 36px; line-height: 44px; box-sizing: border-box; overflow: hidden; -webkit-mask-image: -webkit-radial-gradient(white, black);">
+                ${conf.titulo2}
               </div>
             </div>
           </div>
         </div>
-        \${conf.cintaPeligo ? \`<div style="\${cintaStyle}" class="w-full"></div>\` : ''}
+        ${conf.cintaPeligo ? \`<div style="${cintaStyle}" class="w-full"></div>\` : ''}
 
         <!-- Cuerpo -->
         <div class="bg-white px-10 py-10 flex-grow relative">
-          <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 18px;">\${fechaTexto}</div>
+          <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 18px;">${fechaTexto}</div>
           
           <div class="mt-6">
             <div class="font-black text-[#0A1931] no-compress" style="font-size: 22px;">ESTIMADO(A):</div>
-            <div class="mt-2 bg-slate-50 border-l-8 \${conf.tipo === 'critica' ? 'border-red-600' : 'border-blue-600'} rounded-r-xl px-6 py-5 shadow-sm">
-              <div class="font-black text-[#0A1931] break-words no-compress uppercase" style="font-size: 32px; line-height: 1.2;">\${nombreCli}</div>
+            <div class="mt-2 bg-slate-50 border-l-8 ${conf.tipo === 'critica' ? 'border-red-600' : 'border-blue-600'} rounded-r-xl px-6 py-5 shadow-sm">
+              <div class="font-black text-[#0A1931] break-words no-compress uppercase" style="font-size: 32px; line-height: 1.2;">${nombreCli}</div>
             </div>
           </div>
 
           <div class="mt-8 text-slate-700 font-medium no-compress text-justify" style="font-size: 22px; line-height: 1.5;">
-            \${conf.texto}
+            ${conf.texto}
           </div>
 
-          <div class="mt-10 \${conf.tipo === 'critica' ? 'bg-[#FFFBEB] border-4 border-red-500' : 'bg-[#4348EB] border-l-[12px] border-l-[#C6D82E]'} rounded-2xl px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
+          <div class="mt-10 ${conf.tipo === 'critica' ? 'bg-[#FFFBEB] border-4 border-red-500' : 'bg-[#4348EB] border-l-[12px] border-l-[#C6D82E]'} rounded-2xl px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
             <div class="flex flex-col w-full">
-              <div class="\${conf.tipo === 'critica' ? 'text-red-600' : 'text-[#C6D82E]'} font-black uppercase no-compress mb-1" style="font-size: 20px;">MONTO MÍNIMO A PAGAR</div>
-              <div class="\${conf.tipo === 'critica' ? 'text-black' : 'text-white'} font-black leading-none break-words no-compress drop-shadow-sm" style="font-size: 96px;">\${montoFmt}</div>
+              <div class="${conf.tipo === 'critica' ? 'text-red-600' : 'text-[#C6D82E]'} font-black uppercase no-compress mb-1" style="font-size: 20px;">MONTO MÍNIMO A PAGAR</div>
+              <div class="${conf.tipo === 'critica' ? 'text-black' : 'text-white'} font-black leading-none break-words no-compress drop-shadow-sm" style="font-size: 96px;">${montoFmt}</div>
               <div style="height: 30px;"></div>
-              <div class="\${conf.tipo === 'critica' ? 'text-red-700 bg-red-100 px-3 py-1 rounded w-max' : 'text-[#C6D82E]'} font-bold no-compress uppercase" style="font-size: 22px;">\${conf.alertaBox}</div>
+              <div class="${conf.tipo === 'critica' ? 'text-red-700 bg-red-100 px-3 py-1 rounded w-max' : 'text-[#C6D82E]'} font-bold no-compress uppercase" style="font-size: 22px;">${conf.alertaBox}</div>
             </div>
-            <div class="w-24 h-24 rounded-full \${conf.tipo === 'critica' ? 'bg-red-100 border-red-500 text-red-600' : 'bg-[#282C96] border-[#C6D82E]/30 text-[#C6D82E]'} border-4 flex items-center justify-center shrink-0 ml-4 shadow-inner">
-              \${conf.tipo === 'critica' ? 
+            <div class="w-24 h-24 rounded-full ${conf.tipo === 'critica' ? 'bg-red-100 border-red-500 text-red-600' : 'bg-[#282C96] border-[#C6D82E]/30 text-[#C6D82E]'} border-4 flex items-center justify-center shrink-0 ml-4 shadow-inner">
+              ${conf.tipo === 'critica' ? 
                 \`<svg class="w-12 h-12 fill-current" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>\` : 
                 \`<svg class="w-12 h-12 fill-current" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>\`
               }
@@ -473,15 +473,15 @@
 
           <div class="mt-8 bg-slate-50 border-2 border-slate-200 rounded-2xl px-8 py-6">
             <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 16px;">CUENTA STP / CLABE • TRANSFERENCIA SPEI</div>
-            <div class="mt-2 mono font-black text-[#0A1931] leading-none break-all no-compress" style="font-size: 38px;">\${clabeFmt}</div>
+            <div class="mt-2 mono font-black text-[#0A1931] leading-none break-all no-compress" style="font-size: 38px;">${clabeFmt}</div>
             <div class="mt-2 text-[#4348EB] font-bold no-compress" style="font-size: 16px;">STP - Sistema de Transferencias y Pagos</div>
           </div>
 
           <div class="mt-8 border border-blue-100 rounded-2xl px-8 py-6 flex justify-between items-center" style="background-color: #f0f7ff;">
             <div>
               <div class="text-blue-800 font-black uppercase no-compress" style="font-size: 16px;">CONTACTO DE SU GESTOR</div>
-              <div class="mt-2 font-bold text-[#0A1931] break-words no-compress" style="font-size: 26px;">Gestor: \${gNom}</div>
-              <div class="mt-1 font-black text-[#0A1931] no-compress" style="font-size: 28px;">Tel: \${gTel}</div>
+              <div class="mt-2 font-bold text-[#0A1931] break-words no-compress" style="font-size: 26px;">Gestor: ${gNom}</div>
+              <div class="mt-1 font-black text-[#0A1931] no-compress" style="font-size: 28px;">Tel: ${gTel}</div>
             </div>
             <div class="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border border-blue-100 shadow-sm" style="min-width: 140px; display: flex;">
               <div class="text-4xl mb-1">📞</div>
@@ -492,9 +492,9 @@
         </div>
 
         <!-- Footer -->
-        <div class="\${conf.colorFondo} px-10 py-6 flex justify-between items-center \${conf.tipo==='suave' && diaIdx==='3' ? 'border-t border-blue-200' : ''}">
-          <div class="\${conf.tipo==='suave' && diaIdx==='3' ? 'text-blue-900' : 'text-white'} font-bold no-compress" style="font-size: 20px;">Maxikash - 55 9088 7100 - maxikash.mx</div>
-          <div class="\${conf.colorSub} font-bold uppercase no-compress" style="font-size: 14px;">CONFIDENCIAL</div>
+        <div class="${conf.colorFondo} px-10 py-6 flex justify-between items-center ${conf.tipo==='suave' && diaIdx==='3' ? 'border-t border-blue-200' : ''}">
+          <div class="${conf.tipo==='suave' && diaIdx==='3' ? 'text-blue-900' : 'text-white'} font-bold no-compress" style="font-size: 20px;">Maxikash - 55 9088 7100 - maxikash.mx</div>
+          <div class="${conf.colorSub} font-bold uppercase no-compress" style="font-size: 14px;">CONFIDENCIAL</div>
         </div>
       \`;
       document.getElementById('fichaCobranza').innerHTML = html;
@@ -518,13 +518,13 @@
       const hoy = new Date();
       const diaSemana = hoy.getDay(); 
       const dias = (diaSemana + 6) % 7;
-      return dias === 0 ? "VENCE HOY" : \`\${dias} DÍAS VENCIDOS\`;
+      return dias === 0 ? "VENCE HOY" : \`${dias} DÍAS VENCIDOS\`;
     }
 
     function generarNombreArchivo(cliente, monto) {
       const c = sanitizarNombre(cliente);
       const m = Math.round(parseFloat(monto) || 0);
-      return \`\${c}_\${m}.jpg\`;
+      return \`${c}_${m}.jpg\`;
     }
 
     function ajustarEscala(auto = true) {
@@ -533,10 +533,10 @@
         escalaActual = Math.min(1, Math.max(0.28, anchoDisp / 1080));
         sliderEscala.value = escalaActual;
       }
-      ficha.style.transform = \`scale(\${escalaActual})\`;
+      ficha.style.transform = \`scale(${escalaActual})\`;
       const alto = ficha.offsetHeight || 1200;
-      previewSizer.style.height = \`\${alto * escalaActual}px\`;
-      labelEscala.textContent = \`\${Math.round(escalaActual * 100)}%\`;
+      previewSizer.style.height = \`${alto * escalaActual}px\`;
+      labelEscala.textContent = \`${Math.round(escalaActual * 100)}%\`;
     }
     
     window.addEventListener('resize', () => ajustarEscala(true));
@@ -603,7 +603,7 @@
 
       let preGestores = baseGestoresRaw.map((fila, idx) => ({
         id: String(idx + 1),
-        nombre: nCol ? String(fila[nCol] || "").trim() : \`Gestor \${idx + 1}\`,
+        nombre: nCol ? String(fila[nCol] || "").trim() : \`Gestor ${idx + 1}\`,
         telefono: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : ""
       }));
 
@@ -616,13 +616,13 @@
       });
       listaGestoresProcesados = Array.from(mapUnicos.values());
 
-      badgeGestoresCargados.textContent = \`\${listaGestoresProcesados.length} gestores (sin duplicados)\`;
+      badgeGestoresCargados.textContent = \`${listaGestoresProcesados.length} gestores (sin duplicados)\`;
 
       selectGestorDefault.innerHTML = "";
       listaGestoresProcesados.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g.nombre;
-        opt.textContent = \`\${g.nombre} (\${g.telefono || 'Sin tel'})\`;
+        opt.textContent = \`${g.nombre} (${g.telefono || 'Sin tel'})\`;
         selectGestorDefault.appendChild(opt);
       });
 
@@ -685,7 +685,7 @@
       columnasCuentas.forEach(col => {
         const opt = document.createElement('option');
         opt.value = col;
-        opt.textContent = \`Columna: \${col}\`;
+        opt.textContent = \`Columna: ${col}\`;
         if (!gMatch && /gestor|asesor|cobrador|asignado/i.test(col)) gMatch = col;
         colGestorSel.appendChild(opt);
       });
@@ -731,7 +731,7 @@
 
         return {
           id: idx,
-          cliente: cCol ? String(fila[cCol] || "").trim().toUpperCase() : \`CLIENTE #\${idx + 1}\`,
+          cliente: cCol ? String(fila[cCol] || "").trim().toUpperCase() : \`CLIENTE #${idx + 1}\`,
           monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.-]/g, "")) || 0) : 0,
           celular: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : "",
           clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : "",
@@ -745,14 +745,14 @@
 
       const mapUnicosCuentas = new Map();
       preCuentas.forEach(c => {
-        const key = \`\${c.cliente}_\${c.monto}_\${c.gestorNombre}\`;
+        const key = \`${c.cliente}_${c.monto}_${c.gestorNombre}\`;
         if (key && !mapUnicosCuentas.has(key)) {
           mapUnicosCuentas.set(key, c);
         }
       });
       listaCuentasProcesadas = Array.from(mapUnicosCuentas.values());
 
-      badgeCuentasCargadas.textContent = \`\${listaCuentasProcesadas.length} cuentas (deudores)\`;
+      badgeCuentasCargadas.textContent = \`${listaCuentasProcesadas.length} cuentas (deudores)\`;
 
       if (orden === "monto_desc") listaCuentasProcesadas.sort((a, b) => b.monto - a.monto);
       else if (orden === "monto_asc") listaCuentasProcesadas.sort((a, b) => a.monto - b.monto);
@@ -768,7 +768,7 @@
         c.cliente.toLowerCase().includes(q) || c.celular.includes(q) || c.gestorNombre.toLowerCase().includes(q)
       );
 
-      contadorLista.textContent = \`Cuentas a procesar (\${filtrados.length})\`;
+      contadorLista.textContent = \`Cuentas a procesar (${filtrados.length})\`;
       listaCuentasContainer.innerHTML = "";
 
       if (filtrados.length === 0) {
@@ -779,17 +779,17 @@
       filtrados.forEach((item, idx) => {
         const div = document.createElement('div');
         const activo = (idx === indiceSeleccionado);
-        div.className = \`p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center \${
+        div.className = \`p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
           activo ? 'bg-[#4348EB] text-white border-[#0A1931] shadow-md ring-2 ring-[#C6D82E]' : 'bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100'
         }\`;
         
         div.innerHTML = \`
           <div class="truncate max-w-[210px]">
-            <p class="font-bold text-xs truncate">\${item.cliente}</p>
-            <p class="text-[10px] mt-0.5 \${activo ? 'text-slate-300' : 'text-slate-500'}">👔 \${item.gestorNombre}</p>
+            <p class="font-bold text-xs truncate">${item.cliente}</p>
+            <p class="text-[10px] mt-0.5 ${activo ? 'text-slate-300' : 'text-slate-500'}">👔 ${item.gestorNombre}</p>
           </div>
           <div class="text-right font-black">
-            <p class="text-xs \${activo ? 'text-[#C6D82E]' : 'text-[#0A1931]'}">$\${formatearMoneda(item.monto)}</p>
+            <p class="text-xs ${activo ? 'text-[#C6D82E]' : 'text-[#0A1931]'}">$${formatearMoneda(item.monto)}</p>
           </div>
         \`;
         div.onclick = () => {
@@ -819,7 +819,7 @@
 
     // 3. EXPORTACIÓN INDIVIDUAL (JPG)
     btnDescargarUno.addEventListener('click', async () => {
-      if (!window.html2canvas) return alert("Cargando componentes...");
+      if (!window.html2canvas) return alert("Cargando components...");
       const c = listaCuentasProcesadas[indiceSeleccionado];
       if (!c) return alert("Selecciona o carga una cuenta.");
 
@@ -854,7 +854,7 @@
         for (let i = 0; i < listaCuentasProcesadas.length; i++) {
           const c = listaCuentasProcesadas[i];
           seleccionarCuenta(i);
-          progresoTexto.textContent = \`Generando imagen \${i + 1} de \${listaCuentasProcesadas.length}... (\${c.cliente})\`;
+          progresoTexto.textContent = \`Generando imagen ${i + 1} de ${listaCuentasProcesadas.length}... (${c.cliente})\`;
           
           await new Promise(r => setTimeout(r, 60));
           const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
@@ -872,7 +872,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = \`MAXIKASH_LOTE_POR_GESTORES_\${Date.now()}.zip\`;
+        link.download = \`MAXIKASH_LOTE_POR_GESTORES_${Date.now()}.zip\`;
         link.click();
         URL.revokeObjectURL(url);
       } catch (err) {
@@ -891,11 +891,11 @@
       const c = listaCuentasProcesadas[indiceSeleccionado];
       if (!c || !c.celular) return alert("Esta cuenta no tiene celular asignado.");
       const msg = encodeURIComponent(
-        \`Hola \${c.cliente},\n\` +
-        \`Le recordamos su aviso de pago urgente de Maxikash por $\${formatearMoneda(c.monto)} MXN.\n\` +
-        \`Transferencia SPEI a su cuenta STP: \${c.clabe || "Sin Clabe"}. Atiende: \${c.gestorNombre} (\${c.gestorTelefono ? "Tel: "+c.gestorTelefono : ""}).\`
+        \`Hola ${c.cliente},\n\` +
+        \`Le recordamos su aviso de pago urgente de Maxikash por $${formatearMoneda(c.monto)} MXN.\n\` +
+        \`Transferencia SPEI a su cuenta STP: ${c.clabe || "Sin Clabe"}. Atiende: ${c.gestorNombre} (${c.gestorTelefono ? "Tel: "+c.gestorTelefono : ""}).\`
       );
-      window.open(\`https://wa.me/52\${c.celular}?text=\${msg}\`, "_blank");
+      window.open(\`https://wa.me/52${c.celular}?text=${msg}\`, "_blank");
     });
 
     renderFichaHTML({});
