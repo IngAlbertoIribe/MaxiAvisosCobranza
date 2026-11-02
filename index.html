@@ -416,11 +416,9 @@
             </div>
             
             ${conf.tag ? `
-            <div style="padding-top: 55px;">
-              <div style="border-radius: 9999px; overflow: hidden; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid transparent;">
-                <div class="font-black no-compress" style="background-color: ${diaIdx === '3' ? '#ffffff' : '#FFD700'}; color: ${diaIdx === '3' ? '#3b82f6' : '#000000'}; font-size: 20px; line-height: 1; white-space: nowrap; padding: 12px 24px; display: block;">
-                  ${conf.tag}
-                </div>
+            <div style="padding-top: 55px; text-align: right;">
+              <div class="font-black no-compress" style="background-color: ${diaIdx === '3' ? '#ffffff' : '#FFD700'}; color: ${diaIdx === '3' ? '#3b82f6' : '#000000'}; font-size: 20px; line-height: 1; white-space: nowrap; padding: 12px 24px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); -webkit-mask-image: -webkit-radial-gradient(white, black);">
+                ${conf.tag}
               </div>
             </div>` : ''}
           </div>
