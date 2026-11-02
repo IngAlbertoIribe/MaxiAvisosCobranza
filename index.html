@@ -409,19 +409,15 @@
         <!-- Cabecera -->
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
         <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
-          ${conf.tipo === 'critica' ? `<div class="absolute top-8 left-10"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' class='w-16 h-16 text-red-500 animate-pulse drop-shadow-md'>
-            <path fill-rule='evenodd' d='M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z' clip-rule='evenodd' />
-          </svg></div><div class="absolute top-8 right-10"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' class='w-16 h-16 text-red-500 animate-pulse drop-shadow-md'>
-            <path fill-rule='evenodd' d='M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z' clip-rule='evenodd' />
-          </svg></div>` : ''}
+          ${conf.tipo === 'critica' ? '<div class="absolute top-6 left-10 text-7xl animate-pulse drop-shadow-lg">🚨</div><div class="absolute top-6 right-10 text-7xl animate-pulse drop-shadow-lg">🚨</div>' : ''}
           <div class="flex justify-between items-start ${conf.tipo === 'critica' ? 'mt-12' : ''}">
             <div class="flex flex-col items-center md:items-start gap-1">
               <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
             </div>
-            <div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md" style="font-size: 20px;">
+            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md" style="font-size: 20px;">
               ${conf.tag}
-            </div>
+            </div>` : ''}
           </div>
           <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
             <div class="${conf.colorTitulo} font-black leading-none no-compress uppercase drop-shadow-md text-center w-full tracking-tighter" style="font-size: 92px; line-height: 1.05;">${conf.titulo1}</div>
@@ -429,7 +425,6 @@
           </div>
         </div>
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
-
         <!-- Cuerpo -->
         <div class="bg-white px-10 py-10 flex-grow relative">
           <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 18px;">${fechaTexto}</div>
