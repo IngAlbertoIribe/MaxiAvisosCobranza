@@ -317,7 +317,7 @@
       1: { // Lunes
         tipo: 'suave',
         tag: 'AVISO DE COBRANZA',
-        titulo1: 'PONTE AL CORRIENTE',
+        titulo1: 'PONTE AL<br/>CORRIENTE',
         titulo2: 'PAGA EL MÍNIMO',
         texto: 'Le recordamos que su préstamo con garantía prendaria de su motocicleta presenta <strong class="text-[#0A1931]">atraso en pagos</strong>. Para evitar cargos adicionales y mantener su historial en buen estado, le solicitamos realizar el <strong class="font-bold">pago mínimo indicado</strong> el día de hoy.<br/><br/><span class="text-[#0A1931] font-bold">Puede pagar por transferencia SPEI a la cuenta STP de abajo.</span>',
         alertaBox: 'MXN • INICIO DE MORA',
@@ -329,7 +329,7 @@
       2: { // Martes
         tipo: 'suave',
         tag: 'AVISO DE COBRANZA',
-        titulo1: 'PONTE AL CORRIENTE',
+        titulo1: 'PONTE AL<br/>CORRIENTE',
         titulo2: 'PAGA EL MÍNIMO',
         texto: 'Le recordamos que su préstamo con garantía prendaria de su motocicleta inició su periodo de mora este martes. Sabemos que a veces se nos pasa, por eso le avisamos con tiempo. Para evitar cargos adicionales y mantener su historial en buen estado, le solicitamos realizar el <strong class="font-bold">pago mínimo indicado</strong> el día de hoy.',
         alertaBox: 'MXN • INICIO DE MORA',
@@ -353,7 +353,7 @@
       4: { // Jueves
         tipo: 'media',
         tag: 'AVISO DE COBRANZA',
-        titulo1: '!!! PONTE AL CORRIENTE !!!',
+        titulo1: '!!! PONTE AL<br/>CORRIENTE !!!',
         titulo2: '!!! PAGA EL MÍNIMO URGENTE !!!',
         texto: 'Este es un aviso importante. Paga el mínimo urgente para evitar cargos adicionales, escalamiento de cuenta y mantener tu servicio activo sin interrupciones.',
         alertaBox: 'ESTADO: VENCIDO - EVITA RECARGOS POR MORA',
@@ -366,7 +366,7 @@
         tipo: 'critica',
         tag: '⚠️ SEGUNDO AVISO URGENTE',
         titulo1: '!!! ATENCIÓN !!!<br/>SEGUNDO AVISO',
-        titulo2: '!!! REGULARIZA HOY <br> EVITA CARGOS MAYORES !!!',
+        titulo2: '!!! REGULARIZA HOY - EVITA CARGOS MAYORES !!!',
         texto: 'Le recordamos que su préstamo con garantía prendaria de su moto <strong class="text-black">presenta atraso en pagos</strong>. Para evitar cargos adicionales, intereses moratorios y afectación a su historial, le solicitamos realizar el pago mínimo indicado el día de hoy.',
         alertaBox: 'ESTADO: VENCIDO - ÚLTIMO DÍA DE PAGO',
         colorFondo: 'bg-[#B91C1C]',
@@ -377,7 +377,7 @@
       6: { // Sábado
         tipo: 'critica',
         tag: '⚠️ AVISO DE COBRANZA',
-        titulo1: '!!! PONTE AL CORRIENTE !!!',
+        titulo1: '!!! PONTE AL<br/>CORRIENTE !!!',
         titulo2: '!!! REGULARIZA DE INMEDIATO !!!',
         texto: 'Le recordamos que su préstamo con garantía prendaria de su moto venció el día LUNES. Se le otorgó prórroga hasta el día VIERNES, la cual ya venció. Al día de hoy su crédito se encuentra <strong class="text-black">fuera de prórroga y con atraso</strong>. Para evitar cargos adicionales, intereses moratorios y afectación a su historial, le solicitamos regularizar su situación de forma inmediata.',
         alertaBox: 'ESTADO: VENCIDO - PRÓRROGA VENCIDA',
@@ -403,18 +403,21 @@
       let html = '';
       
       // Estilo de cinta de peligro
-      const cintaStyle = conf.cintaPeligo ? `background: repeating-linear-gradient(45deg, #000, #000 20px, #FFD700 20px, #FFD700 40px); height: 24px; width: 100%;` : '';
+      const cintaStyle = conf.cintaPeligo ? `background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23FFD700'/%3E%3Cpolygon points='0,40 40,0 20,0 0,20' fill='%23000'/%3E%3Cpolygon points='40,40 40,20 20,40' fill='%23000'/%3E%3C/svg%3E"); background-size: 40px 40px; background-repeat: repeat-x; height: 24px; width: 100%;` : '';
       
       html += `
         <!-- Cabecera -->
         ${conf.cintaPeligo ? `<div style="${cintaStyle}"></div>` : ''}
         <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
-          ${conf.tipo === 'critica' ? '<div class="absolute top-6 left-10 text-6xl animate-pulse">🚨</div><div class="absolute top-6 right-10 text-6xl animate-pulse">🚨</div>' : ''}
+          ${conf.tipo === 'critica' ? `<div class="absolute top-8 left-10"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' class='w-16 h-16 text-red-500 animate-pulse drop-shadow-md'>
+            <path fill-rule='evenodd' d='M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z' clip-rule='evenodd' />
+          </svg></div><div class="absolute top-8 right-10"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' class='w-16 h-16 text-red-500 animate-pulse drop-shadow-md'>
+            <path fill-rule='evenodd' d='M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z' clip-rule='evenodd' />
+          </svg></div>` : ''}
           <div class="flex justify-between items-start ${conf.tipo === 'critica' ? 'mt-12' : ''}">
             <div class="flex items-center gap-5">
-              <img src="logo.png" alt="Logo Maxikash" style="height: 120px; width: auto; object-fit: contain; display: block;" />
+              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 120px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="flex flex-col justify-center">
-                <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-[#0A1931]' : 'text-white'} font-black leading-none no-compress" style="font-size: 52px;"></div>
                 <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress" style="font-size: 18px;">CRÉDITO PARA TU MOTO</div>
               </div>
             </div>
@@ -423,12 +426,8 @@
             </div>
           </div>
           <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
-            <div class="${conf.colorTitulo} font-black leading-none no-compress uppercase drop-shadow-md text-center w-full tracking-tighter" style="font-size: 72px; line-height: 1.05;">
-              ${conf.titulo1}
-            </div>
-            <div class="${conf.colorSub} font-black mt-4 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 38px;">
-              ${conf.titulo2}
-            </div>
+            <div class="${conf.colorTitulo} font-black leading-none no-compress uppercase drop-shadow-md text-center w-full tracking-tighter" style="font-size: 92px; line-height: 1.05;">${conf.titulo1}</div>
+            <div class="${conf.colorSub} font-black mt-4 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 38px;">${conf.titulo2}</div>
           </div>
         </div>
         ${conf.cintaPeligo ? `<div style="${cintaStyle}"></div>` : ''}
