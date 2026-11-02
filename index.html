@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Generador Masivo de Cobranza</title>
+  <title>Maxikash - Generador Masivo de Cobranza</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- SheetJS, html2canvas, JSZip directamente -->
@@ -30,7 +30,7 @@
         <!-- Logo Header web -->
         <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain block" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
         <div>
-          <h1 class="text-xl font-black tracking-tight">COBRANZA • EMISIÓN MASIVA</h1>
+          <h1 class="text-xl font-black tracking-tight">MAXIKASH COBRANZA • EMISIÓN MASIVA</h1>
           <p class="text-slate-300 text-xs mt-0.5">1. Excel Gestores &rarr; 2. Excel Cuentas &rarr; 3. Exportación Masiva</p>
         </div>
       </div>
@@ -390,45 +390,55 @@
       const gNom = datos.gestorNombre || "Sin asignar";
       const gTel = datos.gestorTelefono || "Sin asignar";
 
-      let html = '';
-      
       // Estilo de cinta de peligro
       const cintaStyle = conf.cintaPeligo ? `background-image: url('cinta.png'); background-repeat: repeat-x; background-size: auto 100%; height: 36px; width: 100%;` : '';
+      
+      // Procesar titulo1 separando cualquier variante de <br> en líneas individuales
+      const lineasTitulo1 = (conf.titulo1 || '').split(/<br\s*\/?>/i);
+      const htmlTitulo1 = lineasTitulo1.map(l => `<div style="font-size: 80px; line-height: 88px; font-weight: 900; letter-spacing: -2px;">${l}</div>`).join('<div style="height: 12px;"></div>');
+
+      let html = '';
       
       html += `
         <!-- Cabecera -->
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
-        <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
+        <div class="${conf.colorFondo} px-10 pt-10 pb-10 relative">
           ${(conf.tipo === 'critica' || conf.tipo === 'media') ? `
             <div class="absolute top-4 left-10 text-6xl drop-shadow-lg">${conf.tipo === 'critica' ? '🚨' : '⚠️'}</div>
             <div class="absolute top-4 right-10 text-6xl drop-shadow-lg">${conf.tipo === 'critica' ? '🚨' : '⚠️'}</div>
           ` : ''}
           
-          <div class="flex justify-between items-center ${(conf.tipo === 'critica' || conf.tipo === 'media') ? 'mt-16' : ''}">
+          <!-- Fila de Logo y Óvalo con altura fija para alineación exacta -->
+          <div class="flex justify-between items-start ${(conf.tipo === 'critica' || conf.tipo === 'media') ? 'mt-16' : ''}" style="min-height: 185px;">
             <div class="flex flex-col items-center md:items-start gap-1">
-              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
+              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 145px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
             </div>
-            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-4 rounded-full no-compress shadow-md text-center mt-10" style="font-size: 20px;">
-              ${conf.tag}
+            
+            ${conf.tag ? `
+            <div style="padding-top: 55px;">
+              <div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md flex items-center justify-center gap-1.5" style="font-size: 20px; line-height: 1; white-space: nowrap;">
+                ${conf.tag}
+              </div>
             </div>` : ''}
           </div>
 
-          <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
-            <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full tracking-tighter" style="font-size: 84px; line-height: 1;">
-              <!-- Se reemplaza el br por un div de 20px de altura para forzar el espacio -->
-              ${conf.titulo1.replace('<br/>', '<div style="height: 20px; width: 100%;"></div>')}
+          <!-- Bloque de Títulos con estructura vertical rígida -->
+          <div style="margin-top: 35px; width: 100%; text-align: center;">
+            <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full">
+              ${htmlTitulo1}
             </div>
             
-            <!-- Bloque invisible INQUEBRANTABLE para separar los dos textos grandes -->
-            <div style="height: 40px; width: 100%;"></div>
+            <!-- Separación fija e inquebrantable para html2canvas -->
+            <div style="height: 35px; width: 100%;"></div>
             
-            <div class="${conf.colorSub} font-black no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 1.2;">
+            <div class="${conf.colorSub} font-black no-compress uppercase bg-black/20 block w-full px-6 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 44px;">
               ${conf.titulo2}
             </div>
           </div>
         </div>
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
+
         <!-- Cuerpo -->
         <div class="bg-white px-10 py-10 flex-grow relative">
           <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 18px;">${fechaTexto}</div>
@@ -657,7 +667,7 @@
         });
         let match = "";
         for (const term of defTerms) {
-          const found = columnasCuentas.find(c => c.toLowerCase().includes(term));
+          const found = columnasGestores.find(c => c.toLowerCase().includes(term));
           if (found) { match = found; break; }
         }
         sel.value = match || (defaultIdx >= 0 ? columnasCuentas[defaultIdx] : "");
