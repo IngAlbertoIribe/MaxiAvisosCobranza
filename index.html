@@ -408,15 +408,13 @@
               <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
             </div>
-            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-4 rounded-full no-compress shadow-md flex items-center justify-center" style="font-size: 20px;">
+            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md mt-10" style="font-size: 20px; line-height: 30px;">
               ${conf.tag}
             </div>` : ''}
           </div>
           <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
-            <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full tracking-tighter pb-2 flex flex-col items-center justify-center gap-1" style="font-size: 84px;">
-              ${conf.titulo1.split('<br/>').map(linea => `<span style="line-height: 1.1;">${linea}</span>`).join('')}
-            </div>
-            <div class="${conf.colorSub} font-black mt-6 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 1.2;">${conf.titulo2}</div>
+            <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full tracking-tighter mb-8" style="font-size: 84px; line-height: 95px;">${conf.titulo1}</div>
+            <div class="${conf.colorSub} font-black no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 46px;">${conf.titulo2}</div>
           </div>
         </div>
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
