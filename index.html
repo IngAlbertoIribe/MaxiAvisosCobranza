@@ -161,4 +161,721 @@
 
         <!-- PASO 3: BOTONES DE EXPORTACIÓN -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
-          <div id="overlayProgreso" class="hidden absolute
+          <div id="overlayProgreso" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-[#0A1931] rounded-full animate-spin mb-3"></div>
+            <p class="text-[#0A1931] font-black text-sm uppercase tracking-wide">Generando Lote Masivo...</p>
+            <p id="progresoTexto" class="text-slate-500 font-bold text-xs mt-1">Procesando imágenes...</p>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-black text-[#0A1931] uppercase tracking-wider flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-[#4348EB] text-white flex items-center justify-center text-[10px]">3</span>
+              Plantilla y Exportación
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button id="btnDescargarUno" class="w-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+              <span>📷</span> Descargar Uno (JPG)
+            </button>
+            <button id="btnDescargarZip" class="w-full bg-[#C6D82E] hover:bg-[#B5C62A] text-[#0A1931] font-black py-3 px-3 rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+              <span>🗂️</span> ZIP con Carpetas
+            </button>
+          </div>
+
+          <button id="btnWhatsApp" class="w-full bg-[#22C55E] hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span>💬</span> Abrir WhatsApp del Cliente
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha: Vista Previa HD -->
+      <div class="lg:col-span-7">
+        <div class="flex justify-between items-center mb-2 px-1">
+          <span class="text-xs font-black text-slate-500 uppercase">Vista Previa Ficha HD (1080px)</span>
+          <div class="flex items-center gap-3">
+            <span id="labelEscala" class="text-xs text-slate-500 font-bold">100%</span>
+            <input type="range" id="sliderEscala" min="0.3" max="1.5" step="0.01" value="1" class="w-24 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#4348EB]" />
+            <button id="btnResetEscala" class="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded text-slate-600 font-bold">100%</button>
+          </div>
+        </div>
+
+        <div id="previewWrapper" class="w-full bg-slate-300 rounded-2xl p-4 shadow-inner overflow-hidden flex justify-center">
+          <div id="previewSizer" style="width: 1080px; position: relative;">
+            
+            <!-- EL CONTENEDOR QUE SE EXPORTA A IMAGEN -->
+            <div id="fichaCobranza" class="shadow-2xl overflow-hidden font-sans rounded-2xl flex flex-col" style="width: 1080px; background-color: #ffffff; transform-origin: top left; position: absolute; top: 0; left: 0;"><!-- Renderizado por JS --></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ESTADO PRINCIPAL
+    let baseGestoresRaw = [];
+    let columnasGestores = [];
+    let listaGestoresProcesados = [];
+    let gestorPorDefecto = null;
+
+    let baseCuentasRaw = [];
+    let columnasCuentas = [];
+    let listaCuentasProcesadas = [];
+    let indiceSeleccionado = 0;
+    let escalaActual = 1;
+
+    // ELEMENTOS
+    const fileGestoresInput = document.getElementById('fileGestoresInput');
+    const badgeGestoresCargados = document.getElementById('badgeGestoresCargados');
+    const contenedorMapeoGestores = document.getElementById('contenedorMapeoGestores');
+    const colGestorNombreSel = document.getElementById('colGestorNombreSel');
+    const colGestorTelSel = document.getElementById('colGestorTelSel');
+    const selectGestorDefault = document.getElementById('selectGestorDefault');
+
+    const fileCuentasInput = document.getElementById('fileCuentasInput');
+    const badgeCuentasCargadas = document.getElementById('badgeCuentasCargadas');
+    const contenedorMapeoCuentas = document.getElementById('contenedorMapeoCuentas');
+    const colClienteSel = document.getElementById('colClienteSel');
+    const colMontoSel = document.getElementById('colMontoSel');
+    const colCelularSel = document.getElementById('colCelularSel');
+    const colClabeSel = document.getElementById('colClabeSel');
+    const colGestorSel = document.getElementById('colGestorSel');
+    const colCuentaRegionSel = document.getElementById('colCuentaRegionSel');
+
+    const contadorLista = document.getElementById('contadorLista');
+    const buscarCuentaInput = document.getElementById('buscarCuentaInput');
+    const selectOrden = document.getElementById('selectOrden');
+    const listaCuentasContainer = document.getElementById('listaCuentasContainer');
+
+    const previewWrapper = document.getElementById('previewWrapper');
+    const previewSizer = document.getElementById('previewSizer');
+    const ficha = document.getElementById('fichaCobranza');
+    const sliderEscala = document.getElementById('sliderEscala');
+    const labelEscala = document.getElementById('labelEscala');
+    const btnResetEscala = document.getElementById('btnResetEscala');
+
+    const btnDescargarUno = document.getElementById('btnDescargarUno');
+    const btnDescargarZip = document.getElementById('btnDescargarZip');
+    const btnWhatsApp = document.getElementById('btnWhatsApp');
+    const overlayProgreso = document.getElementById('overlayProgreso');
+    const progresoTexto = document.getElementById('progresoTexto');
+
+    let diaSeleccionado = new Date().getDay().toString();
+    const btnsDia = document.querySelectorAll('.btn-dia');
+
+    function actualizarBotonesDia() {
+      btnsDia.forEach(btn => {
+        if (btn.dataset.dia === diaSeleccionado) {
+          btn.classList.add('bg-white', 'text-[#4348EB]', 'shadow-md');
+          btn.classList.remove('text-white', 'hover:bg-white/20');
+        } else {
+          btn.classList.remove('bg-white', 'text-[#4348EB]', 'shadow-md');
+          btn.classList.add('text-white', 'hover:bg-white/20');
+        }
+      });
+    }
+
+    btnsDia.forEach(btn => {
+      btn.addEventListener('click', () => {
+        diaSeleccionado = btn.dataset.dia;
+        actualizarBotonesDia();
+        if(listaCuentasProcesadas.length > 0 && listaCuentasProcesadas[indiceSeleccionado]) {
+          seleccionarCuenta(indiceSeleccionado);
+        } else {
+          renderFichaHTML({});
+        }
+      });
+    });
+
+    actualizarBotonesDia();
+
+    const configDias = {
+      0: { // Domingo
+        tipo: 'critica',
+        tag: '⚠️ ÚLTIMO AVISO - URGENTE',
+        titulo1: '!!! ÚLTIMO AVISO !!!<br/>PAGO INMEDIATO REQUERIDO',
+        titulo2: '!!! EVITA EJECUCIÓN DE GARANTÍA PRENDARIA !!!',
+        texto: 'Su préstamo con garantía prendaria de su motocicleta presenta <strong class="text-black">5 DÍAS VENCIDOS</strong>.<br/><br/>Incumplimiento genera intereses moratorios, gastos de cobranza y reporte en Buró de Crédito. De conformidad con su contrato, la falta de pago habilita el procedimiento de recuperación de la garantía.',
+        alertaBox: 'ESTADO: VENCIDO - ACCIÓN REQUERIDA HOY',
+        colorFondo: 'bg-[#990000]',
+        colorTitulo: 'text-white',
+        colorSub: 'text-[#FFD700]',
+        cintaPeligo: true
+      },
+      1: { // Lunes
+        tipo: 'suave',
+        tag: '👋 RECORDATORIO',
+        titulo1: 'PONTE AL<br/>CORRIENTE',
+        titulo2: 'PAGA EL MÍNIMO',
+        texto: 'Le recordamos que su préstamo con garantía prendaria de su motocicleta presenta <strong class="text-[#0A1931]">atraso en pagos</strong>. Para evitar cargos adicionales y mantener su historial en buen estado, le solicitamos realizar el <strong class="font-bold">pago mínimo indicado</strong> el día de hoy.<br/><br/><span class="text-[#0A1931] font-bold">Puede pagar por transferencia SPEI a la cuenta STP de abajo.</span>',
+        alertaBox: 'MXN • INICIO DE MORA',
+        colorFondo: 'bg-[#4348EB]',
+        colorTitulo: 'text-white',
+        colorSub: 'text-[#C6D82E]',
+        cintaPeligo: false
+      },
+      2: { // Martes
+        tipo: 'media',
+        tag: 'AVISO DE COBRANZA',
+        titulo1: 'PONTE AL<br/>CORRIENTE',
+        titulo2: 'PAGA EL MÍNIMO',
+        texto: 'Le recordamos que su préstamo con garantía prendaria de su motocicleta inició su periodo de mora este martes. Sabemos que a veces se nos pasa, por eso le avisamos con tiempo. Para evitar cargos adicionales y mantener su historial en buen estado, le solicitamos realizar el <strong class="font-bold">pago mínimo indicado</strong> el día de hoy.',
+        alertaBox: 'MXN • INICIO DE MORA',
+        colorFondo: 'bg-[#4348EB]',
+        colorTitulo: 'text-white',
+        colorSub: 'text-[#C6D82E]',
+        cintaPeligo: false
+      },
+      3: { // Miércoles
+        tipo: 'media',
+        tag: 'AVISO DE COBRANZA',
+        titulo1: '¡HOLA!<br/>TE RECORDAMOS TU PAGO',
+        titulo2: 'Estamos para apoyarte',
+        texto: 'Esperamos que estés bien. Te escribimos para recordarte que tu préstamo con garantía prendaria de tu motocicleta inició su periodo de mora este martes. Sabemos que a veces se nos pasa, por eso te avisamos con tiempo.',
+        alertaBox: 'Te apoyamos para regularizarte hoy.',
+        colorFondo: 'bg-[#60A5FA]',
+        colorTitulo: 'text-[#0A1931]',
+        colorSub: 'text-white',
+        cintaPeligo: false
+      },
+      4: { // Jueves
+        tipo: 'critica',
+        tag: 'AVISO DE COBRANZA',
+        titulo1: '!!! PONTE AL<br/>CORRIENTE !!!',
+        titulo2: '!!! PAGA EL MÍNIMO URGENTE !!!',
+        texto: 'Este es un aviso importante. Paga el mínimo urgente para evitar cargos adicionales, escalamiento de cuenta y mantener tu servicio activo sin interrupciones.',
+        alertaBox: 'ESTADO: VENCIDO - EVITA RECARGOS POR MORA',
+        colorFondo: 'bg-[#0A1931]',
+        colorTitulo: 'text-white',
+        colorSub: 'text-[#FFD700]',
+        cintaPeligo: true
+      },
+      5: { // Viernes
+        tipo: 'critica',
+        tag: '⚠️ SEGUNDO AVISO URGENTE',
+        titulo1: '!!! ATENCIÓN !!!<br/>SEGUNDO AVISO',
+        titulo2: '!!! REGULARIZA HOY - EVITA CARGOS MAYORES !!!',
+        texto: 'Le recordamos que su préstamo con garantía prendaria de su moto <strong class="text-black">presenta atraso en pagos</strong>. Para evitar cargos adicionales, intereses moratorios y afectación a su historial, le solicitamos realizar el pago mínimo indicado el día de hoy.',
+        alertaBox: 'ESTADO: VENCIDO - ÚLTIMO DÍA DE PAGO',
+        colorFondo: 'bg-[#B91C1C]',
+        colorTitulo: 'text-white',
+        colorSub: 'text-[#FFD700]',
+        cintaPeligo: true
+      },
+      6: { // Sábado
+        tipo: 'critica',
+        tag: '⚠️ AVISO DE COBRANZA URGENTE',
+        titulo1: '!!! PONTE AL CORRIENTE !!!',
+        titulo2: '!!! REGULARIZA DE INMEDIATO !!!',
+        texto: 'Le recordamos que su préstamo con garantía prendaria de su moto venció el día LUNES. Se le otorgó prórroga hasta el día VIERNES, la cual ya venció. Al día de hoy su crédito se encuentra <strong class="text-black">fuera de prórroga y con atraso</strong>. Para evitar cargos adicionales, intereses moratorios y afectación a su historial, le solicitamos regularizar su situación de forma inmediata.',
+        alertaBox: 'ESTADO: VENCIDO - PRÓRROGA VENCIDA',
+        colorFondo: 'bg-[#DC2626]',
+        colorTitulo: 'text-white',
+        colorSub: 'text-[#FFD700]',
+        cintaPeligo: true
+      }
+    };
+
+    function renderFichaHTML(datos) {
+      const diaIdx = diaSeleccionado || '1';
+      const conf = configDias[diaIdx];
+      
+      const region = datos.regionCuenta ? datos.regionCuenta : "Mexicali, B.C.";
+      const fechaTexto = `${hoyStr} • ${region}`;
+      const nombreCli = datos.cliente || "NOMBRE DEL CLIENTE";
+      const montoFmt = `$${formatearMoneda(datos.monto || 0)}`;
+      const clabeFmt = datos.clabe ? (datos.clabe.match(/.{1,4}/g)?.join(" ") || datos.clabe) : "CUENTA STP";
+      const gNom = datos.gestorNombre || "Sin asignar";
+      const gTel = datos.gestorTelefono || "Sin asignar";
+
+      let html = '';
+      
+      // Estilo de cinta de peligro
+      const cintaStyle = conf.cintaPeligo ? `background-image: url('cinta.png'); background-repeat: repeat-x; background-size: auto 100%; height: 36px; width: 100%;` : '';
+      
+      html += `
+        <!-- Cabecera -->
+        ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
+        <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
+          ${conf.tipo === 'critica' ? '<div class="absolute top-2 left-10 text-7xl drop-shadow-lg">🚨</div><div class="absolute top-2 right-10 text-7xl drop-shadow-lg">🚨</div>' : ''}
+          ${conf.tipo === 'media' ? '<div class="absolute top-2 left-10 text-7xl drop-shadow-lg">⚠️</div><div class="absolute top-2 right-10 text-7xl drop-shadow-lg">⚠️</div>' : ''}
+          <div class="flex justify-between items-start ${(conf.tipo === 'critica' || conf.tipo === 'media') ? 'mt-12' : ''}">
+            <div class="flex flex-col items-center md:items-start gap-1">
+              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
+              <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
+            </div>
+            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md" style="font-size: 20px;">
+              ${conf.tag}
+            </div>` : ''}
+          </div>
+          <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
+            <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full tracking-tighter pb-2" style="font-size: 84px; line-height: 1.15;">${conf.titulo1}</div>
+            <div class="${conf.colorSub} font-black mt-6 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 1.2;">${conf.titulo2}</div>
+          </div>
+        </div>
+        ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
+
+        <!-- Cuerpo -->
+        <div class="bg-white px-10 py-10 flex-grow relative">
+          <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 18px;">${fechaTexto}</div>
+          
+          <div class="mt-6">
+            <div class="font-black text-[#0A1931] no-compress" style="font-size: 22px;">ESTIMADO(A):</div>
+            <div class="mt-2 bg-slate-50 border-l-8 ${conf.tipo === 'critica' ? 'border-red-600' : 'border-blue-600'} rounded-r-xl px-6 py-5 shadow-sm">
+              <div class="font-black text-[#0A1931] break-words no-compress uppercase" style="font-size: 32px; line-height: 1.2;">${nombreCli}</div>
+            </div>
+          </div>
+
+          <div class="mt-8 text-slate-700 font-medium no-compress text-justify" style="font-size: 22px; line-height: 1.5;">
+            ${conf.texto}
+          </div>
+
+          <div class="mt-10 ${conf.tipo === 'critica' ? 'bg-[#FFFBEB] border-4 border-red-500' : 'bg-[#4348EB] border-l-[12px] border-l-[#C6D82E]'} rounded-2xl px-8 pt-8 pb-7 flex justify-between items-center shadow-lg">
+            <div class="flex flex-col w-full">
+              <div class="${conf.tipo === 'critica' ? 'text-red-600' : 'text-[#C6D82E]'} font-black uppercase no-compress mb-1" style="font-size: 20px;">MONTO MÍNIMO A PAGAR</div>
+              <div class="${conf.tipo === 'critica' ? 'text-black' : 'text-white'} font-black leading-none break-words no-compress drop-shadow-sm" style="font-size: 96px;">${montoFmt}</div>
+              <div style="height: 30px;"></div>
+              <div class="${conf.tipo === 'critica' ? 'text-red-700 bg-red-100 px-3 py-1 rounded w-max' : 'text-[#C6D82E]'} font-bold no-compress uppercase" style="font-size: 22px;">${conf.alertaBox}</div>
+            </div>
+            <div class="w-24 h-24 rounded-full ${conf.tipo === 'critica' ? 'bg-red-100 border-red-500 text-red-600' : 'bg-[#282C96] border-[#C6D82E]/30 text-[#C6D82E]'} border-4 flex items-center justify-center shrink-0 ml-4 shadow-inner">
+              ${conf.tipo === 'critica' ? 
+                `<svg class="w-12 h-12 fill-current" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>` : 
+                `<svg class="w-12 h-12 fill-current" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`
+              }
+            </div>
+          </div>
+
+          <div class="mt-8 bg-slate-50 border-2 border-slate-200 rounded-2xl px-8 py-6">
+            <div class="text-slate-500 font-bold uppercase no-compress" style="font-size: 16px;">CUENTA STP / CLABE • TRANSFERENCIA SPEI</div>
+            <div class="mt-2 mono font-black text-[#0A1931] leading-none break-all no-compress" style="font-size: 38px;">${clabeFmt}</div>
+            <div class="mt-2 text-[#4348EB] font-bold no-compress" style="font-size: 16px;">STP - Sistema de Transferencias y Pagos</div>
+          </div>
+
+          <div class="mt-8 bg-blue-50/50 border border-blue-100 rounded-2xl px-8 py-6 flex justify-between items-center">
+            <div>
+              <div class="text-blue-800 font-black uppercase no-compress" style="font-size: 16px;">CONTACTO DE SU GESTOR</div>
+              <div class="mt-2 font-bold text-[#0A1931] break-words no-compress" style="font-size: 26px;">Gestor: ${gNom}</div>
+              <div class="mt-1 font-black text-[#0A1931] no-compress" style="font-size: 28px;">Tel: ${gTel}</div>
+            </div>
+            <div class="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border border-blue-100 shadow-sm shrink-0">
+              <div class="text-4xl mb-1">📞</div>
+              <div class="text-[12px] font-black text-blue-800">WHATSAPP</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="${conf.colorFondo} px-10 py-6 flex justify-between items-center ${conf.tipo==='suave' && diaIdx==='3' ? 'border-t border-blue-200' : ''}">
+          <div class="${conf.tipo==='suave' && diaIdx==='3' ? 'text-blue-900' : 'text-white'} font-bold no-compress" style="font-size: 20px;">Maxikash - 55 9088 7100 - maxikash.mx</div>
+          <div class="${conf.colorSub} font-bold uppercase no-compress" style="font-size: 14px;">CONFIDENCIAL</div>
+        </div>
+      `;
+      document.getElementById('fichaCobranza').innerHTML = html;
+    }
+
+    // FUNCIONES UTILIDADES
+    function sanitizarNombre(txt) {
+      return (txt || "SIN_NOMBRE")
+        .normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .trim()
+        .replace(/\s+/g, "_");
+    }
+
+    function formatearMoneda(val) {
+      const num = parseFloat(String(val).replace(/[^0-9.]/g, "")) || 0;
+      return num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcularDiasVencidos() {
+      const hoy = new Date();
+      const diaSemana = hoy.getDay(); 
+      const dias = (diaSemana + 6) % 7;
+      return dias === 0 ? "VENCE HOY" : `${dias} DÍAS VENCIDOS`;
+    }
+
+    function generarNombreArchivo(cliente, monto) {
+      const c = sanitizarNombre(cliente);
+      const m = Math.round(parseFloat(monto) || 0);
+      return `${c}_${m}.jpg`;
+    }
+
+    function ajustarEscala(auto = true) {
+      if (auto && previewWrapper) {
+        const anchoDisp = previewWrapper.clientWidth - 32;
+        escalaActual = Math.min(1, Math.max(0.28, anchoDisp / 1080));
+        sliderEscala.value = escalaActual;
+      }
+      ficha.style.transform = `scale(${escalaActual})`;
+      const alto = ficha.offsetHeight || 1200;
+      previewSizer.style.height = `${alto * escalaActual}px`;
+      labelEscala.textContent = `${Math.round(escalaActual * 100)}%`;
+    }
+    
+    window.addEventListener('resize', () => ajustarEscala(true));
+    sliderEscala.addEventListener('input', (e) => {
+      escalaActual = parseFloat(e.target.value);
+      ajustarEscala(false);
+    });
+    btnResetEscala.addEventListener('click', () => {
+      escalaActual = 1;
+      sliderEscala.value = 1;
+      ajustarEscala(false);
+    });
+
+    const hoyStr = new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+        
+    // 1. CARGA DE GESTORES (FILTRADO DE REPETIDOS)
+    fileGestoresInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+        if (json.length > 0) {
+          baseGestoresRaw = json;
+          columnasGestores = Object.keys(json[0]);
+          configurarMapeoGestores();
+          procesarListaGestores();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function configurarMapeoGestores() {
+      contenedorMapeoGestores.classList.remove('hidden');
+      const llenar = (sel, defTerms, defaultIdx) => {
+        sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+        columnasGestores.forEach(col => {
+          const opt = document.createElement('option');
+          opt.value = col;
+          opt.textContent = col;
+          sel.appendChild(opt);
+        });
+        let match = "";
+        for (const term of defTerms) {
+          const found = columnasGestores.find(c => c.toLowerCase().includes(term));
+          if (found) { match = found; break; }
+        }
+        sel.value = match || (defaultIdx >= 0 ? columnasGestores[defaultIdx] : "");
+      };
+      llenar(colGestorNombreSel, ["nombre", "gestor", "asesor", "lic", "cobrador"], 0);
+      llenar(colGestorTelSel, ["tel", "cel", "telefono", "movil", "whatsapp"], 1);
+    }
+
+    [colGestorNombreSel, colGestorTelSel].forEach(s => {
+      s.addEventListener('change', procesarListaGestores);
+    });
+
+    function procesarListaGestores() {
+      if (baseGestoresRaw.length === 0) return;
+      const nCol = colGestorNombreSel.value;
+      const tCol = colGestorTelSel.value;
+
+      let preGestores = baseGestoresRaw.map((fila, idx) => ({
+        id: String(idx + 1),
+        nombre: nCol ? String(fila[nCol] || "").trim() : `Gestor ${idx + 1}`,
+        telefono: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : ""
+      }));
+
+      const mapUnicos = new Map();
+      preGestores.forEach(g => {
+        const key = g.nombre.toUpperCase();
+        if (key && !mapUnicos.has(key)) {
+          mapUnicos.set(key, g);
+        }
+      });
+      listaGestoresProcesados = Array.from(mapUnicos.values());
+
+      badgeGestoresCargados.textContent = `${listaGestoresProcesados.length} gestores (sin duplicados)`;
+
+      selectGestorDefault.innerHTML = "";
+      listaGestoresProcesados.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.nombre;
+        opt.textContent = `${g.nombre} (${g.telefono || 'Sin tel'})`;
+        selectGestorDefault.appendChild(opt);
+      });
+
+      gestorPorDefecto = listaGestoresProcesados[0] || null;
+      if (gestorPorDefecto) {
+        selectGestorDefault.value = gestorPorDefecto.nombre;
+      }
+      if (baseCuentasRaw.length > 0) procesarCuentas();
+    }
+
+    selectGestorDefault.addEventListener('change', (e) => {
+      gestorPorDefecto = listaGestoresProcesados.find(g => g.nombre === e.target.value) || null;
+      if (baseCuentasRaw.length > 0) procesarCuentas();
+    });
+
+    // 2. CARGA DE CUENTAS (FILTRADO DE CERO DEUDA Y REPETIDOS)
+    fileCuentasInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+        if (json.length > 0) {
+          baseCuentasRaw = json;
+          columnasCuentas = Object.keys(json[0]);
+          configurarMapeoCuentas();
+          procesarCuentas();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function configurarMapeoCuentas() {
+      contenedorMapeoCuentas.classList.remove('hidden');
+      const llenar = (sel, defTerms, defaultIdx) => {
+        sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+        columnasCuentas.forEach(col => {
+          const opt = document.createElement('option');
+          opt.value = col;
+          opt.textContent = col;
+          sel.appendChild(opt);
+        });
+        let match = "";
+        for (const term of defTerms) {
+          const found = columnasCuentas.find(c => c.toLowerCase().includes(term));
+          if (found) { match = found; break; }
+        }
+        sel.value = match || (defaultIdx >= 0 ? columnasCuentas[defaultIdx] : "");
+      };
+
+      llenar(colClienteSel, ["nombre", "cliente", "titular", "deudor"], 0);
+      llenar(colMontoSel, ["saldo", "monto", "cuota", "total", "adeudo", "minimo", "pago"], 1);
+      llenar(colCelularSel, ["celular", "tel", "telefono", "movil", "whatsapp"], 2);
+      llenar(colClabeSel, ["clabe", "cuenta", "stp", "transferencia"], 3);
+
+      colGestorSel.innerHTML = '<option value="">-- Usar Gestor por Defecto --</option>';
+      let gMatch = "";
+      columnasCuentas.forEach(col => {
+        const opt = document.createElement('option');
+        opt.value = col;
+        opt.textContent = `Columna: ${col}`;
+        if (!gMatch && /gestor|asesor|cobrador|asignado/i.test(col)) gMatch = col;
+        colGestorSel.appendChild(opt);
+      });
+      colGestorSel.value = gMatch || "";
+
+      llenar(colCuentaRegionSel, ["region", "ciudad", "zona", "plaza", "sucursal", "estado", "municipio"], -1);
+    }
+
+    [colClienteSel, colMontoSel, colCelularSel, colClabeSel, colGestorSel, colCuentaRegionSel, selectOrden].forEach(s => {
+      s.addEventListener('change', procesarCuentas);
+    });
+
+    function buscarDatosGestor(nombreBuscado, usaColumnaGestor) {
+      if (usaColumnaGestor) {
+        if (!nombreBuscado || String(nombreBuscado).trim() === "") {
+          return { nombre: "SIN_ASIGNAR", telefono: "" };
+        }
+        const nb = String(nombreBuscado).toLowerCase().trim();
+        const encontrado = listaGestoresProcesados.find(g => {
+          const gNom = (g.nombre || "").toLowerCase();
+          return gNom.includes(nb) || nb.includes(gNom);
+        });
+        return encontrado || { nombre: nombreBuscado.trim(), telefono: "Sin número" };
+      } else {
+        return gestorPorDefecto || { nombre: "SIN_ASIGNAR", telefono: "" };
+      }
+    }
+
+    function procesarCuentas() {
+      if (baseCuentasRaw.length === 0) return;
+      const usaColG = !!colGestorSel.value;
+      const cCol = colClienteSel.value;
+      const mCol = colMontoSel.value;
+      const tCol = colCelularSel.value;
+      const clCol = colClabeSel.value;
+      const gCol = colGestorSel.value;
+      const rCol = colCuentaRegionSel.value;
+      const orden = selectOrden.value;
+
+      let preCuentas = baseCuentasRaw.map((fila, idx) => {
+        const gestorNombreFila = gCol ? String(fila[gCol] || "").trim() : "";
+        const gestorObj = buscarDatosGestor(gestorNombreFila, usaColG);
+
+        return {
+          id: idx,
+          cliente: cCol ? String(fila[cCol] || "").trim().toUpperCase() : `CLIENTE #${idx + 1}`,
+          monto: mCol ? (parseFloat(String(fila[mCol]).replace(/[^0-9.-]/g, "")) || 0) : 0,
+          celular: tCol ? String(fila[tCol] || "").replace(/\D/g, "") : "",
+          clabe: clCol ? String(fila[clCol] || "").replace(/\D/g, "") : "",
+          gestorNombre: gestorObj.nombre,
+          gestorTelefono: gestorObj.telefono,
+          regionCuenta: rCol ? String(fila[rCol] || "").trim() : ""
+        };
+      });
+
+      preCuentas = preCuentas.filter(c => c.monto > 0);
+
+      const mapUnicosCuentas = new Map();
+      preCuentas.forEach(c => {
+        const key = `${c.cliente}_${c.monto}_${c.gestorNombre}`;
+        if (key && !mapUnicosCuentas.has(key)) {
+          mapUnicosCuentas.set(key, c);
+        }
+      });
+      listaCuentasProcesadas = Array.from(mapUnicosCuentas.values());
+
+      badgeCuentasCargadas.textContent = `${listaCuentasProcesadas.length} cuentas (deudores)`;
+
+      if (orden === "monto_desc") listaCuentasProcesadas.sort((a, b) => b.monto - a.monto);
+      else if (orden === "monto_asc") listaCuentasProcesadas.sort((a, b) => a.monto - b.monto);
+      else if (orden === "nombre_asc") listaCuentasProcesadas.sort((a, b) => a.cliente.localeCompare(b.cliente));
+
+      renderizarListaCuentas();
+      if (listaCuentasProcesadas.length > 0) seleccionarCuenta(0);
+    }
+
+    function renderizarListaCuentas() {
+      const q = (buscarCuentaInput.value || "").toLowerCase();
+      const filtrados = listaCuentasProcesadas.filter(c => 
+        c.cliente.toLowerCase().includes(q) || c.celular.includes(q) || c.gestorNombre.toLowerCase().includes(q)
+      );
+
+      contadorLista.textContent = `Cuentas a procesar (${filtrados.length})`;
+      listaCuentasContainer.innerHTML = "";
+
+      if (filtrados.length === 0) {
+        listaCuentasContainer.innerHTML = '<div class="text-center py-8 text-slate-400">Sin coincidencias o todos tienen $0.</div>';
+        return;
+      }
+
+      filtrados.forEach((item, idx) => {
+        const div = document.createElement('div');
+        const activo = (idx === indiceSeleccionado);
+        div.className = `p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
+          activo ? 'bg-[#4348EB] text-white border-[#0A1931] shadow-md ring-2 ring-[#C6D82E]' : 'bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100'
+        }`;
+        
+        div.innerHTML = `
+          <div class="truncate max-w-[210px]">
+            <p class="font-bold text-xs truncate">${item.cliente}</p>
+            <p class="text-[10px] mt-0.5 ${activo ? 'text-slate-300' : 'text-slate-500'}">👔 ${item.gestorNombre}</p>
+          </div>
+          <div class="text-right font-black">
+            <p class="text-xs ${activo ? 'text-[#C6D82E]' : 'text-[#0A1931]'}">$${formatearMoneda(item.monto)}</p>
+          </div>
+        `;
+        div.onclick = () => {
+          indiceSeleccionado = idx;
+          seleccionarCuenta(idx, filtrados);
+          renderizarListaCuentas();
+        };
+        listaCuentasContainer.appendChild(div);
+      });
+    }
+
+    buscarCuentaInput.addEventListener('input', renderizarListaCuentas);
+
+    function seleccionarCuenta(idx, lista = listaCuentasProcesadas) {
+      const c = lista[idx];
+      if (!c) return;
+      renderFichaHTML({
+        cliente: c.cliente,
+        monto: c.monto,
+        clabe: c.clabe,
+        gestorNombre: c.gestorNombre,
+        gestorTelefono: c.gestorTelefono,
+        regionCuenta: c.regionCuenta
+      });
+      ajustarEscala(false);
+    }
+
+    // 3. EXPORTACIÓN INDIVIDUAL (JPG)
+    btnDescargarUno.addEventListener('click', async () => {
+      if (!window.html2canvas) return alert("Cargando componentes...");
+      const c = listaCuentasProcesadas[indiceSeleccionado];
+      if (!c) return alert("Selecciona o carga una cuenta.");
+
+      const origTrans = ficha.style.transform;
+      ficha.style.transform = "none";
+
+      try {
+        await document.fonts.ready;
+        const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
+        const link = document.createElement("a");
+        link.download = generarNombreArchivo(c.cliente, c.monto);
+        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.click();
+      } catch (err) {
+        alert("Error al exportar imagen individual.");
+      } finally {
+        ficha.style.transform = origTrans;
+      }
+    });
+
+    // 3. EXPORTACIÓN MASIVA (ZIP DIVIDIDO EN CARPETAS POR GESTOR)
+    btnDescargarZip.addEventListener('click', async () => {
+      if (listaCuentasProcesadas.length === 0) return alert("No hay cuentas cargadas para exportar.");
+      if (!window.JSZip || !window.html2canvas) return alert("Cargando componentes...");
+
+      overlayProgreso.classList.remove('hidden');
+      const zip = new JSZip();
+      const origTrans = ficha.style.transform;
+      ficha.style.transform = "none";
+
+      try {
+        for (let i = 0; i < listaCuentasProcesadas.length; i++) {
+          const c = listaCuentasProcesadas[i];
+          seleccionarCuenta(i);
+          progresoTexto.textContent = `Generando imagen ${i + 1} de ${listaCuentasProcesadas.length}... (${c.cliente})`;
+          
+          await new Promise(r => setTimeout(r, 60));
+          const canvas = await html2canvas(ficha, { scale: 2, backgroundColor: "#ffffff" });
+          const base64 = canvas.toDataURL("image/jpeg", 0.92).replace(/^data:image\/jpeg;base64,/, "");
+          
+          const nombreCarpetaGestor = sanitizarNombre(c.gestorNombre) || "SIN_GESTOR_ASIGNADO";
+          const carpetaGestor = zip.folder(nombreCarpetaGestor);
+          
+          const nombreArchivo = generarNombreArchivo(c.cliente, c.monto);
+          carpetaGestor.file(nombreArchivo, base64, { base64: true });
+        }
+
+        progresoTexto.textContent = "Empaquetando carpetas en archivo ZIP...";
+        const blob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `MAXIKASH_LOTE_POR_GESTORES_${Date.now()}.zip`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert("Error al generar el ZIP masivo.");
+      } finally {
+        ficha.style.transform = origTrans;
+        overlayProgreso.classList.add('hidden');
+        if (listaCuentasProcesadas[indiceSeleccionado]) {
+          seleccionarCuenta(indiceSeleccionado);
+        }
+      }
+    });
+
+    // WHATSAPP
+    btnWhatsApp.addEventListener('click', () => {
+      const c = listaCuentasProcesadas[indiceSeleccionado];
+      if (!c || !c.celular) return alert("Esta cuenta no tiene celular asignado.");
+      const msg = encodeURIComponent(
+        `Hola ${c.cliente},\n` +
+        `Le recordamos su aviso de pago urgente de Maxikash por $${formatearMoneda(c.monto)} MXN.\n` +
+        `Transferencia SPEI a su cuenta STP: ${c.clabe || "Sin Clabe"}. Atiende: ${c.gestorNombre} (Tel: ${c.gestorTelefono}).`
+      );
+      window.open(`https://wa.me/52${c.celular}?text=${msg}`, "_blank");
+    });
+
+    renderFichaHTML({});
+    setTimeout(() => ajustarEscala(true), 200);
+  </script>
+</body>
+</html>
