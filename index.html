@@ -423,8 +423,12 @@
             </div>
           </div>
           <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
-            <div class="${conf.colorTitulo} font-black leading-tight no-compress uppercase drop-shadow-sm text-center" style="font-size: 64px;">${conf.titulo1}</div>
-            <div class="${conf.colorSub} font-black mt-2 no-compress uppercase bg-black/20 inline-block px-4 py-1 rounded-lg text-center" style="font-size: 30px;">${conf.titulo2}</div>
+            <div class="${conf.colorTitulo} font-black leading-none no-compress uppercase drop-shadow-md text-center w-full tracking-tighter" style="font-size: 92px; line-height: 1.05;">
+              ${conf.titulo1}
+            </div>
+            <div class="${conf.colorSub} font-black mt-4 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 38px;">
+              ${conf.titulo2}
+            </div>
           </div>
         </div>
         ${conf.cintaPeligo ? `<div style="${cintaStyle}"></div>` : ''}
