@@ -327,7 +327,7 @@
         cintaPeligo: false
       },
       2: { // Martes
-        tipo: 'suave',
+        tipo: 'media',
         tag: 'AVISO DE COBRANZA',
         titulo1: 'PONTE AL<br/>CORRIENTE',
         titulo2: 'PAGA EL MÍNIMO',
@@ -339,7 +339,7 @@
         cintaPeligo: false
       },
       3: { // Miércoles
-        tipo: 'suave',
+        tipo: 'media',
         tag: 'AVISO DE COBRANZA',
         titulo1: '¡HOLA!<br/>TE RECORDAMOS TU PAGO',
         titulo2: 'Estamos para apoyarte',
@@ -351,7 +351,7 @@
         cintaPeligo: false
       },
       4: { // Jueves
-        tipo: 'media',
+        tipo: 'critica',
         tag: 'AVISO DE COBRANZA',
         titulo1: '!!! PONTE AL<br/>CORRIENTE !!!',
         titulo2: '!!! PAGA EL MÍNIMO URGENTE !!!',
@@ -410,6 +410,7 @@
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
         <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
           ${conf.tipo === 'critica' ? '<div class="absolute top-2 left-10 text-7xl animate-pulse drop-shadow-lg">🚨</div><div class="absolute top-2 right-10 text-7xl animate-pulse drop-shadow-lg">🚨</div>' : ''}
+          ${conf.tipo === 'media' ? '<div class="absolute top-2 left-10 text-7xl animate-pulse drop-shadow-lg">⚠️</div><div class="absolute top-2 right-10 text-7xl animate-pulse drop-shadow-lg">⚠️</div>' : ''}
           <div class="flex justify-between items-start ${conf.tipo === 'critica' ? 'mt-12' : ''}">
             <div class="flex flex-col items-center md:items-start gap-1">
               <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
@@ -448,7 +449,7 @@
               <div class="${conf.tipo === 'critica' ? 'text-red-700 bg-red-100 px-3 py-1 rounded w-max' : 'text-[#C6D82E]'} font-bold no-compress uppercase" style="font-size: 22px;">${conf.alertaBox}</div>
             </div>
             <div class="w-24 h-24 rounded-full ${conf.tipo === 'critica' ? 'bg-red-100 border-red-500' : 'bg-[#282C96] border-[#C6D82E]/30'} border-4 flex items-center justify-center shrink-0 ml-4 shadow-inner">
-              <span class="text-5xl ${conf.tipo === 'critica' ? 'text-red-600' : 'text-[#C6D82E]'}">${conf.tipo === 'critica' ? '⚠️' : '⚡'}</span>
+              <span class="text-5xl leading-none flex items-center justify-center pt-2 ${conf.tipo === 'critica' ? 'text-red-600' : 'text-[#C6D82E]'}">${conf.tipo === 'critica' ? '⚠️' : '⚡'}</span>
             </div>
           </div>
 
