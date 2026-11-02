@@ -667,11 +667,13 @@
         });
         let match = "";
         for (const term of defTerms) {
-          const found = columnasGestores.find(c => c.toLowerCase().includes(term));
+          // CORRECCIÓN: Ahora busca correctamente en columnasCuentas
+          const found = columnasCuentas.find(c => c.toLowerCase().includes(term));
           if (found) { match = found; break; }
         }
         sel.value = match || (defaultIdx >= 0 ? columnasCuentas[defaultIdx] : "");
       };
+      // ...
 
       llenar(colClienteSel, ["nombre", "cliente", "titular", "deudor"], 0);
       llenar(colMontoSel, ["saldo", "monto", "cuota", "total", "adeudo", "minimo", "pago"], 1);
