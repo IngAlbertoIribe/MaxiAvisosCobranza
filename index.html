@@ -417,7 +417,7 @@
             
             ${conf.tag ? `
             <div style="padding-top: 55px;">
-              <div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md flex items-center justify-center gap-1.5" style="font-size: 20px; line-height: 1; white-space: nowrap;">
+              <div class="font-black px-6 py-3 rounded-full no-compress shadow-md" style="background-color: ${diaIdx === '3' ? '#ffffff' : '#FFD700'}; color: ${diaIdx === '3' ? '#3b82f6' : '#000000'}; font-size: 20px; line-height: 1; white-space: nowrap; display: inline-block; box-sizing: border-box; border: 1px solid transparent;">
                 ${conf.tag}
               </div>
             </div>` : ''}
@@ -432,7 +432,7 @@
             <!-- Separación fija e inquebrantable para html2canvas -->
             <div style="height: 35px; width: 100%;"></div>
             
-            <div class="${conf.colorSub} font-black no-compress uppercase bg-black/20 block w-full px-6 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 44px;">
+            <div class="${conf.colorSub} font-black no-compress uppercase block w-full px-6 py-3 rounded-xl text-center tracking-wide" style="background-color: rgba(0,0,0,0.2); font-size: 36px; line-height: 44px; display: inline-block; box-sizing: border-box;">
               ${conf.titulo2}
             </div>
           </div>
@@ -475,17 +475,17 @@
             <div class="mt-2 text-[#4348EB] font-bold no-compress" style="font-size: 16px;">STP - Sistema de Transferencias y Pagos</div>
           </div>
 
-          <div class="mt-8 bg-blue-50/50 border border-blue-100 rounded-2xl px-8 py-6 flex justify-between items-center">
-            <div>
-              <div class="text-blue-800 font-black uppercase no-compress" style="font-size: 16px;">CONTACTO DE SU GESTOR</div>
-              <div class="mt-2 font-bold text-[#0A1931] break-words no-compress" style="font-size: 26px;">Gestor: ${gNom}</div>
-              <div class="mt-1 font-black text-[#0A1931] no-compress" style="font-size: 28px;">Tel: ${gTel}</div>
-            </div>
-            <div class="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border border-blue-100 shadow-sm shrink-0">
-              <div class="text-4xl mb-1">📞</div>
-              <div class="text-[12px] font-black text-blue-800">WHATSAPP</div>
-            </div>
+         <div class="mt-8 bg-blue-50/50 border border-blue-100 rounded-2xl px-8 py-6 flex justify-between items-center" style="background-color: #f0f7ff;">
+          <div>
+            <div class="text-blue-800 font-black uppercase no-compress" style="font-size: 16px;">CONTACTO DE SU GESTOR</div>
+            <div class="mt-2 font-bold text-[#0A1931] break-words no-compress" style="font-size: 26px;">Gestor: ${gNom}</div>
+            <div class="mt-1 font-black text-[#0A1931] no-compress" style="font-size: 28px;">Tel: ${gTel}</div>
           </div>
+          <div class="flex flex-col items-center justify-center bg-white px-5 py-4 rounded-2xl border border-blue-100 shadow-sm" style="min-width: 140px; display: flex;">
+            <div class="text-4xl mb-1">📞</div>
+            <div class="text-[12px] font-black text-blue-800">WHATSAPP</div>
+          </div>
+        </div>
 
         </div>
 
