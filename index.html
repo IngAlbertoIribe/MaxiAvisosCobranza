@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Maxikash - Generador Masivo de Cobranza</title>
+  <title>Generador Masivo de Cobranza</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- SheetJS, html2canvas, JSZip directamente -->
@@ -30,7 +30,7 @@
         <!-- Logo Header web -->
         <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain block" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
         <div>
-          <h1 class="text-xl font-black tracking-tight">MAXIKASH COBRANZA • EMISIÓN MASIVA</h1>
+          <h1 class="text-xl font-black tracking-tight">COBRANZA • EMISIÓN MASIVA</h1>
           <p class="text-slate-300 text-xs mt-0.5">1. Excel Gestores &rarr; 2. Excel Cuentas &rarr; 3. Exportación Masiva</p>
         </div>
       </div>
@@ -416,11 +416,8 @@
           </svg></div>` : ''}
           <div class="flex justify-between items-start ${conf.tipo === 'critica' ? 'mt-12' : ''}">
             <div class="flex items-center gap-5">
-              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 80px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
-              <div class="flex flex-col justify-center">
-                <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-[#0A1931]' : 'text-white'} font-black leading-none no-compress" style="font-size: 52px;">MAXIKASH</div>
-                <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress" style="font-size: 18px;">CRÉDITO PARA TU MOTO</div>
-              </div>
+              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
+              <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress" style="font-size: 18px;">CRÉDITO PARA TU MOTO</div>
             </div>
             <div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md" style="font-size: 20px;">
               ${conf.tag}
