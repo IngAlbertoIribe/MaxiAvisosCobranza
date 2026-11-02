@@ -22,7 +22,7 @@
   </style>
 </head>
 <body class="bg-[#E8EEF7] min-h-screen text-slate-800">
-
+672772
   <div class="w-full max-w-[1360px] mx-auto p-4 md:p-6">
     <!-- Header Principal -->
     <header class="bg-[#4348EB] rounded-2xl p-6 text-white mb-6 flex flex-col md:flex-row items-center justify-between shadow-xl gap-4">
@@ -411,7 +411,8 @@
         <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
           ${conf.tipo === 'critica' ? '<div class="absolute top-2 left-10 text-7xl animate-pulse drop-shadow-lg">🚨</div><div class="absolute top-2 right-10 text-7xl animate-pulse drop-shadow-lg">🚨</div>' : ''}
           ${conf.tipo === 'media' ? '<div class="absolute top-2 left-10 text-7xl animate-pulse drop-shadow-lg">⚠️</div><div class="absolute top-2 right-10 text-7xl animate-pulse drop-shadow-lg">⚠️</div>' : ''}
-          <div class="flex justify-between items-start ${conf.tipo === 'critica' ? 'mt-12' : ''}">
+          <!-- Ahora: baja tanto en critica como en media para no encimarse -->
+          <div class="flex justify-between items-start ${(conf.tipo === 'critica' || conf.tipo === 'media') ? 'mt-12' : ''}">
             <div class="flex flex-col items-center md:items-start gap-1">
               <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
