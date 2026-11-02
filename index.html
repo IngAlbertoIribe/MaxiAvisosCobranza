@@ -30,7 +30,7 @@
         <!-- Logo Header web -->
         <img src="logo.png" alt="Maxikash Logo" class="h-12 w-auto object-contain block" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
         <div>
-          <h1 class="text-xl font-black tracking-tight">COBRANZA • EMISIÓN MASIVA</h1>
+          <h1 class="text-xl font-black tracking-tight">MAXIKASH COBRANZA • EMISIÓN MASIVA</h1>
           <p class="text-slate-300 text-xs mt-0.5">1. Excel Gestores &rarr; 2. Excel Cuentas &rarr; 3. Exportación Masiva</p>
         </div>
       </div>
@@ -403,7 +403,7 @@
       let html = '';
       
       // Estilo de cinta de peligro
-      const cintaStyle = conf.cintaPeligo ? `background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23FFD700'/%3E%3Cpolygon points='0,40 40,0 20,0 0,20' fill='%23000'/%3E%3Cpolygon points='40,40 40,20 20,40' fill='%23000'/%3E%3C/svg%3E"); background-size: 40px 40px; background-repeat: repeat-x; height: 24px; width: 100%;` : '';
+      const cintaStyle = conf.cintaPeligo ? `background-image: url("cinta.png"); background-repeat: repeat-x; background-size: auto 100%; height: 36px; width: 100%;` : '';
       
       html += `
         <!-- Cabecera -->
@@ -416,8 +416,9 @@
           </svg></div>` : ''}
           <div class="flex justify-between items-start ${conf.tipo === 'critica' ? 'mt-12' : ''}">
             <div class="flex items-center gap-5">
-              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 120px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
+              <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 80px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="flex flex-col justify-center">
+                <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-[#0A1931]' : 'text-white'} font-black leading-none no-compress" style="font-size: 52px;">MAXIKASH</div>
                 <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress" style="font-size: 18px;">CRÉDITO PARA TU MOTO</div>
               </div>
             </div>
