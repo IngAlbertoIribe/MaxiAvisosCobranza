@@ -407,7 +407,7 @@
       
       html += `
         <!-- Cabecera -->
-        ${conf.cintaPeligo ? `<div style="${cintaStyle}"></div>` : ''}
+        ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
         <div class="${conf.colorFondo} px-10 pt-10 pb-8 relative">
           ${conf.tipo === 'critica' ? `<div class="absolute top-8 left-10"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' class='w-16 h-16 text-red-500 animate-pulse drop-shadow-md'>
             <path fill-rule='evenodd' d='M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z' clip-rule='evenodd' />
@@ -431,7 +431,7 @@
             <div class="${conf.colorSub} font-black mt-4 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 38px;">${conf.titulo2}</div>
           </div>
         </div>
-        ${conf.cintaPeligo ? `<div style="${cintaStyle}"></div>` : ''}
+        ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
 
         <!-- Cuerpo -->
         <div class="bg-white px-10 py-10 flex-grow relative">
