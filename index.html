@@ -408,13 +408,13 @@
               <img src="logo.png" crossOrigin="anonymous" alt="Logo Maxikash" style="height: 150px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://maxikash.mx/wp-content/uploads/2023/11/logo-maxikash-white.png';" />
               <div class="${conf.tipo === 'suave' && diaIdx==='3' ? 'text-slate-600' : 'text-slate-200'} font-bold mt-1 no-compress text-center md:text-left w-full" style="font-size: 18px; padding-left: 5px;">CRÉDITO PARA TU MOTO</div>
             </div>
-            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md" style="font-size: 20px;">
+            ${conf.tag ? `<div class="${diaIdx === '3' ? 'bg-white text-blue-500' : 'bg-[#FFD700] text-black'} font-black px-6 py-3 rounded-full no-compress shadow-md" style="font-size: 20px; line-height: 30px;">
               ${conf.tag}
             </div>` : ''}
           </div>
           <div class="mt-8 flex flex-col items-center justify-center text-center w-full">
             <div class="${conf.colorTitulo} font-black no-compress uppercase drop-shadow-md text-center w-full tracking-tighter pb-2" style="font-size: 84px; line-height: 95px; padding-bottom: 20px;">${conf.titulo1}</div>
-            <div class="${conf.colorSub} font-black mt-6 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 1.2;">${conf.titulo2}</div>
+            <div class="${conf.colorSub} font-black mt-6 no-compress uppercase bg-black/20 block w-full px-4 py-3 rounded-xl text-center tracking-wide" style="font-size: 36px; line-height: 46px;">${conf.titulo2}</div>
           </div>
         </div>
         ${conf.cintaPeligo ? `<div style="${cintaStyle}" class="w-full"></div>` : ''}
@@ -425,11 +425,11 @@
           <div class="mt-6">
             <div class="font-black text-[#0A1931] no-compress" style="font-size: 22px;">ESTIMADO(A):</div>
             <div class="mt-2 bg-slate-50 border-l-8 ${conf.tipo === 'critica' ? 'border-red-600' : 'border-blue-600'} rounded-r-xl px-6 py-5 shadow-sm">
-              <div class="font-black text-[#0A1931] break-words no-compress uppercase" style="font-size: 32px; line-height: 1.2;">${nombreCli}</div>
+              <div class="font-black text-[#0A1931] break-words no-compress uppercase" style="font-size: 32px; line-height: 40px;">${nombreCli}</div>
             </div>
           </div>
 
-          <div class="mt-8 text-slate-700 font-medium no-compress text-justify" style="font-size: 22px; line-height: 1.5;">
+          <div class="mt-8 text-slate-700 font-medium no-compress text-justify" style="font-size: 22px; line-height: 30px;">
             ${conf.texto}
           </div>
 
